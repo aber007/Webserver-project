@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tradee - Your Marketplace</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header Navigation -->
+    <header class="header">
+      <div class="header-content">
+        <button class="menu-btn">☰ Menu</button>
+        <div class="logo">TRADEE</div>
+        <nav class="nav-links">
+          <a href="#">New listing</a>
+          <a href="/login">Log in</a>
+          <a href="/signup" class="btn-primary">Create account</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1>Your Local Marketplace</h1>
+          <p>Buy and sell items from your community</p>
+        </div>
+        <div class="search-bar">
+          <input type="text" placeholder="What are you looking for?" />
+          <button>🔍</button>
+        </div>
+        <div class="popular-tags">
+          <span class="tag-label">Popular:</span>
+          <span class="tag">Electronics</span>
+          <span class="tag">Furniture</span>
+          <span class="tag">Clothing</span>
+          <span class="tag">Books</span>
+          <span class="tag">Toys</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories">
+      <div class="category-grid">
+        <div class="category-item">
+          <div class="category-icon">👕</div>
+          <span>Clothing</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🏺</div>
+          <span>Antiques</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🛋️</div>
+          <span>Furniture</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🎵</div>
+          <span>Music</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🎨</div>
+          <span>Hobby</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🧸</div>
+          <span>Toys</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🎮</div>
+          <span>Gaming</span>
+        </div>
+        <div class="category-item">
+          <div class="category-icon">🚗</div>
+          <span>Vehicles</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Popular Items -->
+    <section class="popular-section">
+      <h2>Popular on Tradee ›</h2>
+      <div class="items-grid">
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>Item Title</h3>
+            <p class="item-date">Jan 27 10:30</p>
+            <p class="item-price">200 kr</p>
+            <p class="item-status">Current bid</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>Item Title</h3>
+            <p class="item-date">Jan 28 15:45</p>
+            <p class="item-price">350 kr</p>
+            <p class="item-status">Current bid</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>Item Title</h3>
+            <p class="item-date">Jan 26 09:20</p>
+            <p class="item-price">150 kr</p>
+            <p class="item-status">Buy now</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>Item Title</h3>
+            <p class="item-date">Jan 25 21:00</p>
+            <p class="item-price">500 kr</p>
+            <p class="item-status">Current bid</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>Item Title</h3>
+            <p class="item-date">Jan 29 12:15</p>
+            <p class="item-price">275 kr</p>
+            <p class="item-status">Current bid</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>Item Title</h3>
+            <p class="item-date">Jan 27 18:30</p>
+            <p class="item-price">425 kr</p>
+            <p class="item-status">Buy now</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Latest Section -->
+    <section class="latest-section">
+      <h2>Just Added</h2>
+      <div class="items-grid">
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>New Item</h3>
+            <p class="item-date">Jan 29 20:00</p>
+            <p class="item-price">100 kr</p>
+            <p class="item-status">Starting bid</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>New Item</h3>
+            <p class="item-date">Jan 29 19:45</p>
+            <p class="item-price">320 kr</p>
+            <p class="item-status">Buy now</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>New Item</h3>
+            <p class="item-date">Jan 29 19:30</p>
+            <p class="item-price">180 kr</p>
+            <p class="item-status">Starting bid</p>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h3>New Item</h3>
+            <p class="item-date">Jan 29 19:15</p>
+            <p class="item-price">250 kr</p>
+            <p class="item-status">Current bid</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Tradee. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>

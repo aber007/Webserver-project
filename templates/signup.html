@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account - Tradee</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="auth-container">
+      <!-- Left Panel -->
+      <div class="auth-panel auth-panel-left">
+        <div class="auth-panel-content">
+          <h2>Join Tradee</h2>
+          <p>Start buying and selling in your local community today.</p>
+        </div>
+      </div>
+
+      <!-- Right Panel - Form -->
+      <div class="auth-panel auth-panel-right">
+        <div class="form-container">
+          <div class="form-header">
+            <a href="/" class="back-link">← Back to Home</a>
+            <h1>Create Account</h1>
+          </div>
+
+          <form class="auth-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstname">First Name</label>
+                <input
+                  type="text"
+                  id="firstname"
+                  name="firstname"
+                  placeholder="John"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="lastname">Last Name</label>
+                <input
+                  type="text"
+                  id="lastname"
+                  name="lastname"
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="location">City / Region</label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                placeholder="Stockholm"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="••••••••"
+                required
+              />
+              <small class="password-hint"
+                >At least 8 characters with mix of letters and numbers</small
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="password-confirm">Confirm Password</label>
+              <input
+                type="password"
+                id="password-confirm"
+                name="password-confirm"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <div class="form-agreement">
+              <input type="checkbox" id="terms" name="terms" required />
+              <label for="terms"
+                >I agree to the
+                <a href="#" class="link-accent">Terms of Service</a> and
+                <a href="#" class="link-accent">Privacy Policy</a></label
+              >
+            </div>
+
+            <button type="submit" class="btn-submit">Create Account</button>
+          </form>
+
+          <div class="auth-divider">
+            <span>or</span>
+          </div>
+
+          <button class="btn-social">
+            <span>Sign up with Google</span>
+          </button>
+
+          <div class="auth-footer">
+            <p>
+              Already have an account?
+              <a href="/login" class="link-accent">Sign in</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
