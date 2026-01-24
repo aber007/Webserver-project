@@ -17,8 +17,12 @@
         <div class="logo">TRADEE</div>
         <nav class="nav-links">
           <a href="#">New listing</a>
+          {% if not user %}
           <a href="/login">Log in</a>
           <a href="/signup" class="btn-primary">Create account</a>
+          {% else %}
+          <a href="/profile"><img class="pfp" src="{{ url_for('static', filename='pfp.jpg') }}" alt="Profile"></a>
+          {% endif %}
         </nav>
       </div>
     </header>

@@ -31,36 +31,20 @@ def user_row_to_user(row) -> 'User':
     Converts a database row to a User dataclass instance.
     """
     return User(
-        id=row.get("user_id"),
+        id=row.get("ID"),
         lastName=row.get("lastName"),
         firstName=row.get("firstName"),
+        city=row.get("city"),
         password=row.get("password"),
         email=row.get("email"),
     )
-
-def create_user(lastName, firstName, password : str, email: str):
-    """
-    Inserts a new user into the database.
-    """
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-
-    hashed_pass = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-    cursor.execute(
-        "INSERT INTO users (lastName, firstName, password, email) VALUES (%s, %s, %s, %s)", 
-        (lastName, firstName, hashed_pass, email)
-    )
-    conn.commit()
-    cursor.close()
-    close_db_connection(conn)
 
 @dataclass
 class User:
     id: int
     lastName: str
     firstName: str
+    city: str
     password: str
     email: str
 
@@ -73,6 +57,30 @@ class User:
 
 class Users:
     @staticmethod
+    def create_user(lastName, firstName, city, email, password : str):
+        """
+        Inserts a new user into the database.
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+
+        hashed_pass = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        try:
+            cursor.execute(
+                "INSERT INTO users (lastName, firstName, city, password, email) VALUES (%s, %s, %s, %s, %s)", 
+                (lastName, firstName, city, hashed_pass, email)
+            )
+        except mysql.connector.IntegrityError as e:
+            print(f"Error inserting user: {e}")
+            return False
+        conn.commit()
+        cursor.close()
+        close_db_connection(conn)
+        return True
+
+
+    @staticmethod
     def get_user_by_id(user_id) -> Optional[User]:
         """
         Retrieves a user from the database by user ID and returns a User instance.
@@ -80,7 +88,7 @@ class Users:
         """
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+        cursor.execute("SELECT * FROM users WHERE ID = %s", (user_id,))
         row = cursor.fetchone()
         cursor.close()
         close_db_connection(conn)
@@ -108,6 +116,19 @@ class Users:
 
         # Map DB row to User dataclass. Keep field names consistent with DB columns.
         return user_row_to_user(row)
+    @staticmethod
+    def get_all_user_ids():
+        """
+        Retrieves all user IDs from the database.
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT ID FROM users")
+        rows = cursor.fetchall()
+        cursor.close()
+        close_db_connection(conn)
+
+        return [row[0] for row in rows]
 
     @staticmethod
     def delete_user(user_id):
@@ -116,7 +137,7 @@ class Users:
         """
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM users WHERE ID = %s", (user_id,))
         conn.commit()
         cursor.close()
         close_db_connection(conn)
@@ -128,7 +149,7 @@ class Users:
         """
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET email = %s WHERE user_id = %s", (new_email, user_id))
+        cursor.execute("UPDATE users SET email = %s WHERE ID = %s", (new_email, user_id))
         conn.commit()
         cursor.close()
         close_db_connection(conn)
