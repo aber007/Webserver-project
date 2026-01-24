@@ -7,12 +7,16 @@ def get_db_connection():
     """
     Creates and returns a new database connection.
     """
-    return mysql.connector.connect(
-        host='localhost',
-        user='root', 
-        password='',  
-        database='tradee_db'
-    )
+    try:
+        return mysql.connector.connect(
+            host='localhost',
+            user='root', 
+            password='',  
+            database='tradee_db'
+        )
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return None
 
 def init_db():
     # Starts the database service through xampp
