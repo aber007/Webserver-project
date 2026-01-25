@@ -5,6 +5,7 @@ from db import *
 
 app = Flask(__name__)
 users = Users()
+auctions = Auctions()
 app.secret_key = 'supersecretkey'
 
 def login_required(f):
@@ -24,6 +25,23 @@ def login_required(f):
 @app.route('/')
 def home():
     return render_template('index.html', user=session.get('current_user'))
+
+
+@app.route('/search')
+def search():
+    # Display auctions
+    category = request.args.get('category', "")
+    if category:
+        auctions_items = auctions.get_auctions_by_category(category)
+    else:
+        auctions_items = auctions.get_all_auctions()
+    print(auctions_items)
+    return render_template('auctions.html', user=session.get('current_user'), auctions_items=auctions_items)
+
+@app.route('/auctions/<int:auction_id>')
+def auction_detail(auction_id):
+    # Implement the logic to display auction details
+    return render_template('auction_detail.html', auction_id=auction_id, user=session.get('current_user'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

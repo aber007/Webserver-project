@@ -1,0 +1,35 @@
+{% extends "base.html" %} {% block title %}Auctions - Tradee{% endblock %} {%
+block content %}
+<!-- Auctions Section -->
+<section class="auctions-section">
+  <div class="auctions-container">
+    <h1>Active Auctions</h1>
+    <p>Browse active auctions from your community</p>
+
+    <div class="search-bar-auctions">
+      <input type="text" placeholder="Search auctions..." />
+      <button>Search</button>
+    </div>
+
+    <div class="auctions-grid">
+      {% if auctions_items|length == 0 %}
+      <p>No auctions found</p>
+      {% endif %} {% for auction in auctions_items %}
+      <div class="auction-card">
+        <img src="{{auction.image_small}}" alt="Auction Image" class="item-image" />
+        <div class="item-details">
+          <h3>{{auction.name}}</h3>
+          <p class="item-date">{{auction.published_at}}</p>
+          <p class="item-price">{{auction.price}} kr</p>
+          <p class="item-status">Current bid</p>
+          <div class="auction-details">
+            <span class="time-left">{{auction.auction_time}}</span>
+            <a href="/auctions/auction/{{auction.id}}" class="btn-view">View</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Tradee{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header Navigation -->
+    <header class="header">
+      <div class="header-content">
+        <button class="menu-btn">Menu</button>
+        <div class="logo"><a class="logo-link" href="/">TRADEE</a></div>
+        <nav class="nav-links">
+          <a href="/">Home</a>
+          <a href="/search">Auctions</a>
+          <a href="#">New listing</a>
+          {% if not user %}
+          <a href="/login">Log in</a>
+          <a href="/signup" class="btn-primary">Create account</a>
+          {% else %}
+          <a href="/profile"
+            ><img
+              class="pfp"
+              src="{{ url_for('static', filename='pfp.jpg') }}"
+              alt="Profile"
+          /></a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+
+    {% block content %}{% endblock %}
+  </body>
+</html>

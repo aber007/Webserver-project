@@ -11,7 +11,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host='localhost',
             user='root', 
-            password='',  
+            password='password',  
             database='tradee_db'
         )
     except mysql.connector.Error as err:
@@ -157,3 +157,44 @@ class Users:
         conn.commit()
         cursor.close()
         close_db_connection(conn)
+
+def get_category_id(category):
+        """
+        Returns category_id of category name
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM `categories` WHERE name = %s", (category,))
+        row = cursor.fetchone()
+        cursor.close()
+        close_db_connection(conn)
+        if row:
+            return row[0]
+        return None
+
+class Auctions:
+    @staticmethod
+    def get_auctions_by_category(category):
+        """
+        Fetches the auctions from a specific category
+        """
+        category_id = get_category_id(category)
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name, price, image_small, published_at, auction_time, views FROM `auctions` WHERE category_id = %s", (category_id,))
+        row = cursor.fetchall()
+        cursor.close()
+        close_db_connection(conn)
+        return row
+    @staticmethod
+    def get_all_auctions():
+        """
+        Fetches all auctions from the database
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name, price, image_small, published_at, auction_time, views FROM `auctions`")
+        row = cursor.fetchall()
+        cursor.close()
+        close_db_connection(conn)
+        return row

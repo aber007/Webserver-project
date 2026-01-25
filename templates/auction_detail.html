@@ -1,0 +1,73 @@
+{% extends "base.html" %} {% block title %}Auction Details - Tradee{% endblock
+%} {% block content %}
+<!-- Auction Detail Section -->
+<section class="auction-detail-section">
+  <div class="auction-detail-container">
+    <div class="breadcrumb">
+      <a href="/auctions">Auctions</a> /
+      <span>Auction {{ auction_id }}</span>
+    </div>
+
+    <div class="auction-detail-content">
+      <div class="auction-image-large"></div>
+
+      <div class="auction-detail-info">
+        <h1>Auction Item #{{ auction_id }}</h1>
+
+        <div class="auction-status">
+          <p class="time-remaining">Time Remaining: 2 days 5 hours</p>
+          <p class="current-bid">
+            Current Highest Bid: <span class="bid-amount">$125</span>
+          </p>
+          <p class="number-of-bids">Number of Bids: 8</p>
+        </div>
+
+        <div class="auction-description">
+          <h2>Description</h2>
+          <p>
+            This is a premium item available for auction. High quality and in
+            excellent condition. Perfect for any collector or enthusiast. Don't
+            miss this opportunity!
+          </p>
+        </div>
+
+        <div class="auction-seller">
+          <h3>Seller Information</h3>
+          <p>Seller: <strong>John Doe</strong></p>
+          <p>Location: New York, NY</p>
+          <p>Member since: 2023</p>
+        </div>
+
+        <div class="auction-actions">
+          <div class="bid-section">
+            <input type="number" placeholder="Enter your bid" min="130" />
+            <button class="btn-bid">Place Bid</button>
+          </div>
+          <button class="btn-watchlist">Add to Watchlist</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="auction-bidding-history">
+      <h2>Bidding History</h2>
+      <div class="bids-list">
+        <div class="bid-item">
+          <span class="bid-user">User 1</span>
+          <span class="bid-amount">$125</span>
+          <span class="bid-time">2 hours ago</span>
+        </div>
+        <div class="bid-item">
+          <span class="bid-user">User 2</span>
+          <span class="bid-amount">$115</span>
+          <span class="bid-time">4 hours ago</span>
+        </div>
+        <div class="bid-item">
+          <span class="bid-user">User 3</span>
+          <span class="bid-amount">$100</span>
+          <span class="bid-time">1 day ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
