@@ -87,6 +87,8 @@ def api_search():
         auctions_items = auctions.get_auctions_by_category(category)
     else:
         auctions_items = auctions.get_all_auctions()
+
+    # Check if auctions_items contain expired auctions and set published to False and exclude them
     return jsonify(auctions_items)
 
 if __name__ == '__main__':
