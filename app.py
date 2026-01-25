@@ -31,12 +31,7 @@ def home():
 def search():
     # Display auctions
     category = request.args.get('category', "")
-    if category:
-        auctions_items = auctions.get_auctions_by_category(category)
-    else:
-        auctions_items = auctions.get_all_auctions()
-    print(auctions_items)
-    return render_template('auctions.html', user=session.get('current_user'), auctions_items=auctions_items)
+    return render_template('auctions.html', user=session.get('current_user'), category=category)
 
 @app.route('/auctions/<int:auction_id>')
 def auction_detail(auction_id):
@@ -83,6 +78,16 @@ def signup():
             return "Error creating user", 400
 
     return render_template('signup.html')
+
+
+@app.route('/api/search', methods=['GET'])
+def api_search():
+    category = request.args.get('category', "")
+    if category:
+        auctions_items = auctions.get_auctions_by_category(category)
+    else:
+        auctions_items = auctions.get_all_auctions()
+    return jsonify(auctions_items)
 
 if __name__ == '__main__':
     app.run(debug=True)

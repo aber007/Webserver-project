@@ -1,0 +1,13 @@
+<div class="auction-card">
+  <img src="{{auction.image_small}}" alt="Auction Image" class="item-image" />
+  <div class="item-details">
+    <h3>{{auction.name}}</h3>
+    <p class="item-date">{{auction.published_at}}</p>
+    <p class="item-price">{{auction.price}} kr</p>
+    <p class="item-status">Current bid</p>
+    <div class="auction-details">
+      <span class="time-left">{{auction.auction_time}}</span>
+      <a href="/auctions/auction/{{auction.id}}" class="btn-view">View</a>
+    </div>
+  </div>
+</div>

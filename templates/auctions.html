@@ -4,32 +4,100 @@ block content %}
 <section class="auctions-section">
   <div class="auctions-container">
     <h1>Active Auctions</h1>
-    <p>Browse active auctions from your community</p>
 
     <div class="search-bar-auctions">
-      <input type="text" placeholder="Search auctions..." />
+      <input
+        id="search-auctions"
+        type="text"
+        placeholder="Search auctions..."
+      />
       <button>Search</button>
     </div>
 
-    <div class="auctions-grid">
-      {% if auctions_items|length == 0 %}
-      <p>No auctions found</p>
-      {% endif %} {% for auction in auctions_items %}
+    <div class="auctions-grid" id="auctions-grid">
+      {% for i in range(8) %}
       <div class="auction-card">
-        <img src="{{auction.image_small}}" alt="Auction Image" class="item-image" />
-        <div class="item-details">
-          <h3>{{auction.name}}</h3>
-          <p class="item-date">{{auction.published_at}}</p>
-          <p class="item-price">{{auction.price}} kr</p>
-          <p class="item-status">Current bid</p>
-          <div class="auction-details">
-            <span class="time-left">{{auction.auction_time}}</span>
-            <a href="/auctions/auction/{{auction.id}}" class="btn-view">View</a>
-          </div>
-        </div>
+        <div class="placeholder-image"></div>
       </div>
       {% endfor %}
     </div>
   </div>
 </section>
+<script>
+  addEventListener("DOMContentLoaded", async () => {
+    console.log("Fetching auctions");
+    const auctions_grid = document.getElementById("auctions-grid");
+    let auctions = [];
+    let url = "";
+    const formatTime = (seconds) => {
+      if (!Number.isFinite(seconds)) return "";
+      const clamped = Math.max(0, Math.floor(seconds));
+      const days = Math.floor(clamped / 86400);
+      const hours = Math.floor((clamped % 86400) / 3600);
+      const minutes = Math.floor((clamped % 3600) / 60);
+      const secs = clamped % 60;
+      if (days > 0) return `${days}d ${hours}h`;
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      return `${minutes}m ${secs}s`;
+    };
+    const remainingSeconds = (publishedAt, durationSeconds) => {
+      const startMs = Date.parse(publishedAt);
+      if (Number.isNaN(startMs) || !Number.isFinite(durationSeconds)) return 0;
+      const endMs = startMs + Math.max(0, durationSeconds) * 1000;
+      return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+    };
+    if ("{{category}}") {
+      url = `${window.location.origin}/api/search?category={{category}}`;
+    } else {
+      url = `${window.location.origin}/api/search`;
+    }
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Response not ok: " + response.status);
+      }
+      auctions = await response.json();
+      console.log(auctions);
+    } catch (error) {
+      console.error("Error fetching auctions:", error);
+      auctions_grid.innerHTML =
+        "<p class='error-message'>Failed to load auctions. Please try again later.</p>";
+      return;
+    }
+    auctions_grid.innerHTML = "";
+    const auctionElements = [];
+    auctions.forEach((auction) => {
+      console.log("Rendering auction:", auction);
+      const auctionCard = document.createElement("div");
+      auctionCard.className = "auction-card";
+      auctionCard.innerHTML = `
+        <img src="${auction.image_small}" alt="Auction Image" class="item-image" />
+        <div class="item-details">
+          <h3>${auction.name}</h3>
+          <p class="item-date">${auction.published_at}</p>
+          <p class="item-price">${auction.price} kr</p>
+          <p class="item-status">Current bid</p>
+          <div class="auction-details">
+            <span class="time-left">${formatTime(remainingSeconds(auction.published_at, auction.auction_time))}</span>
+            <a href="/auctions/auction/${auction.id}" class="btn-view">View</a>
+          </div>
+        </div>
+      `;
+      const timeLeftSpan = auctionCard.querySelector(".time-left");
+      auctionElements.push({
+        element: timeLeftSpan,
+        published_at: auction.published_at,
+        auction_time: auction.auction_time,
+      });
+      auctions_grid.appendChild(auctionCard);
+    });
+    
+    // Update times every second
+    setInterval(() => {
+      auctionElements.forEach(({ element, published_at, auction_time }) => {
+        element.textContent = formatTime(remainingSeconds(published_at, auction_time));
+      });
+    }, 1000);
+  });
+</script>
 {% endblock %}
