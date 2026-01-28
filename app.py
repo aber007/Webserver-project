@@ -91,5 +91,13 @@ def api_search():
     # Check if auctions_items contain expired auctions and set published to False and exclude them
     return jsonify(auctions_items)
 
+@app.route('/api/auctions/<int:auction_id>', methods=['GET'])
+def api_auction_detail(auction_id):
+    pass
+
+@app.route('/api/auctions/remove_published', methods=['PUT'])
+def remove_published_auctions():
+    return ("", 500)
+
 if __name__ == '__main__':
     app.run(debug=True)

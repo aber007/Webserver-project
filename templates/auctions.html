@@ -66,8 +66,25 @@ block content %}
     }
     auctions_grid.innerHTML = "";
     const auctionElements = [];
-    auctions.forEach((auction) => {
-      console.log("Rendering auction:", auction);
+    auctions.forEach(async (auction) => {
+      // Check if auction is expired
+      const isExpired = remainingSeconds(auction.published_at, auction.auction_time) <= 0;
+      if (isExpired) {
+        try {
+          await fetch(`${window.location.origin}/api/auctions/remove_published`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ auction_id: auction.id }),
+          });
+        } catch (error) {
+          console.error("Error updating auction status:", error);
+        } finally {
+         return; // Skip rendering this auction
+        }
+      }
+
       const auctionCard = document.createElement("div");
       auctionCard.className = "auction-card";
       auctionCard.innerHTML = `
@@ -79,7 +96,7 @@ block content %}
           <p class="item-status">Current bid</p>
           <div class="auction-details">
             <span class="time-left">${formatTime(remainingSeconds(auction.published_at, auction.auction_time))}</span>
-            <a href="/auctions/auction/${auction.id}" class="btn-view">View</a>
+            <a href="/auctions/${auction.id}" class="btn-view">View</a>
           </div>
         </div>
       `;
@@ -91,11 +108,13 @@ block content %}
       });
       auctions_grid.appendChild(auctionCard);
     });
-    
+
     // Update times every second
     setInterval(() => {
       auctionElements.forEach(({ element, published_at, auction_time }) => {
-        element.textContent = formatTime(remainingSeconds(published_at, auction_time));
+        element.textContent = formatTime(
+          remainingSeconds(published_at, auction_time),
+        );
       });
     }, 1000);
   });
