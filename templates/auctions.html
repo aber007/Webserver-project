@@ -66,6 +66,11 @@ block content %}
     }
     auctions_grid.innerHTML = "";
     const auctionElements = [];
+    if (auctions.length === 0) {
+      auctions_grid.innerHTML =
+        "<p class='no-auctions-message'>No active auctions found.</p>";
+      return;
+    }
     auctions.forEach(async (auction) => {
       // Check if auction is expired
       const isExpired = remainingSeconds(auction.published_at, auction.auction_time) <= 0;
