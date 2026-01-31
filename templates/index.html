@@ -63,7 +63,7 @@
     document.querySelectorAll('.category-item').forEach(item => {
       item.addEventListener('click', () => {
         const category = item.querySelector('span').textContent.trim().toLowerCase();
-        window.location.href = `/search?category=${encodeURIComponent(category)}`;
+        window.location.href = `/auctions?category=${encodeURIComponent(category)}`;
       });
     });
   </script>

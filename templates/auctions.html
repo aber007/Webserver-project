@@ -47,9 +47,9 @@ block content %}
       return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
     };
     if ("{{category}}") {
-      url = `${window.location.origin}/api/search?category={{category}}`;
+      url = `${window.location.origin}/api/auctions/search?category={{category}}`;
     } else {
-      url = `${window.location.origin}/api/search`;
+      url = `${window.location.origin}/api/auctions/search`;
     }
     try {
       const response = await fetch(url);

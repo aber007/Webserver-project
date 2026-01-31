@@ -11,7 +11,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host='localhost',
             user='root', 
-            password='password',  
+            password='',  
             database='tradee_db'
         )
     except mysql.connector.Error as err:
@@ -77,11 +77,12 @@ class Users:
             )
         except mysql.connector.IntegrityError as e:
             print(f"Error inserting user: {e}")
-            return False
+            return None
         conn.commit()
         cursor.close()
         close_db_connection(conn)
-        return True
+        user_obj = Users.get_user_by_email(email)
+        return user_obj
 
 
     @staticmethod
@@ -157,6 +158,20 @@ class Users:
         conn.commit()
         cursor.close()
         close_db_connection(conn)
+    
+
+    @staticmethod
+    def get_all_users():
+        """
+        Fetches all users from the database
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT ID, lastName, firstName, city, email FROM users")
+        rows = cursor.fetchall()
+        cursor.close()
+        close_db_connection(conn)
+        return rows
 
 def get_category_id(category):
         """
@@ -195,6 +210,18 @@ class Auctions:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT id, name, price, image_small, published_at, auction_time, views FROM `auctions`")
         row = cursor.fetchall()
+        cursor.close()
+        close_db_connection(conn)
+        return row
+    @staticmethod
+    def get_auction_by_id(auction_id):
+        """
+        Fetches a specific auction by its ID
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM `auctions` WHERE id = %s", (auction_id,))
+        row = cursor.fetchone()
         cursor.close()
         close_db_connection(conn)
         return row
