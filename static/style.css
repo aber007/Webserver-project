@@ -901,7 +901,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.auction-image-large {
+.auction-image-large div {
   width: 100%;
   height: 400px;
   background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
@@ -912,6 +912,13 @@ body {
   font-size: 6rem;
   color: #2c5f2d;
   opacity: 0.2;
+}
+
+.auction-image-large img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .auction-detail-info h1 {
@@ -1125,4 +1132,17 @@ body {
   .bid-time {
     text-align: left;
   }
+}
+
+.unfinished {
+    background: repeating-linear-gradient(
+        45deg,
+        #ffff00, /* yellow */
+        #ffff00 10px,
+        #000000 10px, /* black */
+        #000000 20px
+    ) !important;
+    color: white; /* Ensure text is readable against black stripes */
+    text-shadow: 1px 1px 2px black; /* Improve readability */
+    opacity: 0.8;
 }

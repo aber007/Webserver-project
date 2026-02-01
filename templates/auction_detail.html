@@ -12,33 +12,34 @@
       <div class="auction-image-large"></div>
 
       <div class="auction-detail-info">
-        <h1>Auction Item #{{ auction_id }}</h1>
+        <h1 id="auction_name">Auction Item #{{ auction_id }}</h1>
 
         <div class="auction-status">
-          <p class="time-remaining">Time Remaining: 2 days 5 hours</p>
+          <p class="time-remaining" id="time_remaining">Time Remaining:</p>
           <p class="current-bid">
-            Current Highest Bid: <span class="bid-amount">$125</span>
+            Current Highest Bid:
+            <span class="bid-amount" id="current_bid">0</span>
           </p>
-          <p class="number-of-bids">Number of Bids: 8</p>
+          <p class="number-of-bids" id="number_of_bids">Number of Bids: 0</p>
         </div>
 
         <div class="auction-description">
           <h2>Description</h2>
-          <p>
-            This is a premium item available for auction. High quality and in
-            excellent condition. Perfect for any collector or enthusiast. Don't
-            miss this opportunity!
+          <p id="description_text">
+            This is a detailed description of the auction item. It includes all
+            relevant information that potential bidders might need to know
+            before placing a bid.
           </p>
         </div>
 
         <div class="auction-seller">
           <h3>Seller Information</h3>
-          <p>Seller: <strong>John Doe</strong></p>
-          <p>Location: New York, NY</p>
-          <p>Member since: 2023</p>
+          <p id="seller_name">Seller: <strong>John Doe</strong></p>
+          <p id="seller_location">Location: New York, NY</p>
+          <p id="seller_member_since">Member since: 2023</p>
         </div>
 
-        <div class="auction-actions">
+        <div class="auction-actions unfinished">
           <div class="bid-section">
             <input type="number" placeholder="Enter your bid" min="130" />
             <button class="btn-bid">Place Bid</button>
@@ -48,8 +49,9 @@
       </div>
     </div>
 
-    <div class="auction-bidding-history">
+    <div class="auction-bidding-history unfinished">
       <h2>Bidding History</h2>
+      <!-- TODO -->
       <div class="bids-list">
         <div class="bid-item">
           <span class="bid-user">User 1</span>
@@ -69,5 +71,93 @@
       </div>
     </div>
   </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const auctionId = "{{ auction_id }}";
+      const auctionNameElem = document.getElementById("auction_name");
+      const currentBidElem = document.getElementById("current_bid");
+      const numberOfBidsElem = document.getElementById("number_of_bids");
+      const timeRemainingElem = document.getElementById("time_remaining");
+      const descriptionTextElem = document.getElementById("description_text");
+      const sellerNameElem = document.getElementById("seller_name");
+      const sellerLocationElem = document.getElementById("seller_location");
+      const sellerMemberSinceElem = document.getElementById(
+        "seller_member_since",
+      );
+      const imgElem = document.querySelector(".auction-image-large");
+
+      try {
+        const response = await fetch(
+          `${window.location.origin}/api/auctions/${auctionId}`,
+        );
+        if (!response.ok) {
+          throw new Error("Response not ok: " + response.status);
+        }
+
+        const auction = await response.json();
+
+        const seller_response = await await fetch(
+          `${window.location.origin}/api/users/${auction.owner_id}`,
+        );
+        if (!seller_response.ok) {
+          throw new Error("Response not ok: " + response.status);
+        }
+        auction.seller = await seller_response.json();
+
+        console.log(auction);
+        console.log(auction.name);
+        console.log(auction.image_regular);
+
+        auctionNameElem.textContent = auction.name;
+        img = document.createElement("img");
+        img.src = auction.image_regular;
+        img.alt = auction.name;
+        img.classList.add("auction-image-large");
+        imgElem.classList.remove("auction-image-large-img");
+        imgElem.appendChild(img);
+        currentBidElem.textContent = auction.price + " kr";
+
+        const remainingSeconds = (publishedAt, durationSeconds) => {
+          const startMs = Date.parse(publishedAt);
+          if (Number.isNaN(startMs) || !Number.isFinite(durationSeconds))
+            return 0;
+          const endMs = startMs + Math.max(0, durationSeconds) * 1000;
+          return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+        };
+        const formatTime = (seconds) => {
+          if (!Number.isFinite(seconds)) return "";
+          const clamped = Math.max(0, Math.floor(seconds));
+          const days = Math.floor(clamped / 86400);
+          const hours = Math.floor((clamped % 86400) / 3600);
+          const minutes = Math.floor((clamped % 3600) / 60);
+          const secs = clamped % 60;
+          if (days > 0) return `${days}d ${hours}h`;
+          if (hours > 0) return `${hours}h ${minutes}m`;
+          return `${minutes}m ${secs}s`;
+        };
+        const remaining = remainingSeconds(
+          auction.published_at,
+          auction.auction_time,
+        );
+        timeRemainingElem.textContent = `Time Remaining: ${formatTime(
+          remaining,
+        )}`;
+
+        numberOfBidsElem.textContent = `Number of Bids: ${auction.numberOfBids}`;
+        descriptionTextElem.textContent = auction.description;
+        sellerNameElem.innerHTML = `Seller: <strong>${auction.seller.firstName} ${auction.seller.lastName}</strong>`;
+        sellerLocationElem.textContent = `Location: ${auction.seller.city}`;
+        if (auction.seller.accountCreated) {
+          sellerMemberSinceElem.textContent = `Member since: ${new Date(
+            auction.seller.accountCreated,
+          ).getFullYear()}`;
+        } else {
+          sellerMemberSinceElem.textContent = `Member since: N/A`;
+        }
+      } catch (error) {
+        console.error("Error fetching auction details:", error);
+      }
+    });
+  </script>
 </section>
 {% endblock %}

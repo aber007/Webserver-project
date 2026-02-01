@@ -7,7 +7,7 @@
       <h1>Your Local Marketplace</h1>
       <p>Buy and sell items from your community</p>
     </div>
-    <div class="search-bar">
+    <div class="search-bar unfinished">
       <input type="text" placeholder="What are you looking for?" />
       <button>🔍</button>
     </div>
@@ -60,9 +60,12 @@
   </div>
   <script>
     // Clickable category items
-    document.querySelectorAll('.category-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const category = item.querySelector('span').textContent.trim().toLowerCase();
+    document.querySelectorAll(".category-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const category = item
+          .querySelector("span")
+          .textContent.trim()
+          .toLowerCase();
         window.location.href = `/auctions?category=${encodeURIComponent(category)}`;
       });
     });
@@ -70,7 +73,7 @@
 </section>
 
 <!-- Popular Items -->
-<section class="popular-section">
+<section class="popular-section unfinished">
   <h2>Popular on Tradee ›</h2>
   <div class="items-grid">
     <div class="item-card">
@@ -131,7 +134,7 @@
 </section>
 
 <!-- Latest Section -->
-<section class="latest-section">
+<section class="latest-section unfinished">
   <h2>Just Added</h2>
   <div class="items-grid">
     <div class="item-card">

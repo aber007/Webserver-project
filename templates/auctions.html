@@ -5,7 +5,7 @@ block content %}
   <div class="auctions-container">
     <h1>Active Auctions</h1>
 
-    <div class="search-bar-auctions">
+    <div class="search-bar-auctions unfinished">
       <input
         id="search-auctions"
         type="text"
@@ -15,7 +15,7 @@ block content %}
     </div>
 
     <div class="auctions-grid" id="auctions-grid">
-      {% for i in range(8) %}
+      {% for i in range(3) %}
       <div class="auction-card">
         <div class="placeholder-image"></div>
       </div>
@@ -24,8 +24,15 @@ block content %}
   </div>
 </section>
 <script>
-  addEventListener("DOMContentLoaded", async () => {
+  auctions_per_page = 8;
+  auctions_offset = 0;
+  let isLoading = false;
+
+  const add_auctions = async () => {
+    if (isLoading) return;
+    isLoading = true;
     console.log("Fetching auctions");
+    console.log("Current offset:", auctions_offset);
     const auctions_grid = document.getElementById("auctions-grid");
     let auctions = [];
     let url = "";
@@ -47,10 +54,11 @@ block content %}
       return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
     };
     if ("{{category}}") {
-      url = `${window.location.origin}/api/auctions/search?category={{category}}`;
+      url = `${window.location.origin}/api/auctions/?category={{category}}`;
     } else {
-      url = `${window.location.origin}/api/auctions/search`;
+      url = `${window.location.origin}/api/auctions`;
     }
+    url += `?count=${auctions_per_page}&offset=${auctions_offset}`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -62,32 +70,45 @@ block content %}
       console.error("Error fetching auctions:", error);
       auctions_grid.innerHTML =
         "<p class='error-message'>Failed to load auctions. Please try again later.</p>";
+      isLoading = false;
       return;
     }
-    auctions_grid.innerHTML = "";
     const auctionElements = [];
     if (auctions.length === 0) {
-      auctions_grid.innerHTML =
-        "<p class='no-auctions-message'>No active auctions found.</p>";
+      if (auctions_offset === 0) {
+        auctions_grid.innerHTML =
+          "<p class='no-auctions-message'>No active auctions found.</p>";
+      } else {
+        const placeholders =
+          auctions_grid.querySelectorAll(".placeholder-image");
+        placeholders.forEach((p) => p.closest(".auction-card")?.remove());
+        removeEventListener("scroll");
+      }
+      isLoading = false;
       return;
     }
-    auctions.forEach(async (auction) => {
+    auctions_offset += auctions.length;
+
+    for (const auction of auctions) {
       // Check if auction is expired
-      const isExpired = remainingSeconds(auction.published_at, auction.auction_time) <= 0;
+      const isExpired =
+        remainingSeconds(auction.published_at, auction.auction_time) <= 0;
       if (isExpired) {
         try {
-          await fetch(`${window.location.origin}/api/auctions/remove_published`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
+          await fetch(
+            `${window.location.origin}/api/auctions/remove_published`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ auction_id: auction.id }),
             },
-            body: JSON.stringify({ auction_id: auction.id }),
-          });
+          );
         } catch (error) {
           console.error("Error updating auction status:", error);
-        } finally {
-         return; // Skip rendering this auction
         }
+        continue; // Skip rendering this auction
       }
 
       const auctionCard = document.createElement("div");
@@ -100,7 +121,9 @@ block content %}
           <p class="item-price">${auction.price} kr</p>
           <p class="item-status">Current bid</p>
           <div class="auction-details">
-            <span class="time-left">${formatTime(remainingSeconds(auction.published_at, auction.auction_time))}</span>
+            <span class="time-left">${formatTime(
+              remainingSeconds(auction.published_at, auction.auction_time),
+            )}</span>
             <a href="/auctions/${auction.id}" class="btn-view">View</a>
           </div>
         </div>
@@ -111,8 +134,16 @@ block content %}
         published_at: auction.published_at,
         auction_time: auction.auction_time,
       });
-      auctions_grid.appendChild(auctionCard);
-    });
+
+      const firstPlaceholder = auctions_grid
+        .querySelector(".placeholder-image")
+        ?.closest(".auction-card");
+      if (firstPlaceholder) {
+        auctions_grid.insertBefore(auctionCard, firstPlaceholder);
+      } else {
+        auctions_grid.appendChild(auctionCard);
+      }
+    }
 
     // Update times every second
     setInterval(() => {
@@ -122,6 +153,24 @@ block content %}
         );
       });
     }, 1000);
+    isLoading = false;
+  };
+
+  addEventListener("DOMContentLoaded", async () => {
+    await add_auctions();
+  });
+  first_placeholder = document.querySelector(".auction-card");
+  addEventListener("scroll", async () => {
+    const scrollTop = window.scrollY;
+    const windowHeight = window.innerHeight;
+    const docHeight = document.body.offsetHeight;
+
+    if (first_placeholder) {
+      const firstPlaceholderRect = first_placeholder.getBoundingClientRect();
+      if (firstPlaceholderRect.top < windowHeight) {
+        await add_auctions();
+      }
+    }
   });
 </script>
 {% endblock %}

@@ -1,0 +1,13 @@
+/* ...existing code... */
+
+.unfinished {
+    background: repeating-linear-gradient(
+        45deg,
+        #ffff00, /* yellow */
+        #ffff00 10px,
+        #000000 10px, /* black */
+        #000000 20px
+    );
+    color: white; /* Ensure text is readable against black stripes */
+    text-shadow: 1px 1px 2px black; /* Improve readability */
+}
