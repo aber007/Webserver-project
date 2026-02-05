@@ -11,7 +11,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host='localhost',
             user='root', 
-            password='password',  
+            password='',  
             database='tradee_db'
         )
     except mysql.connector.Error as err:
@@ -207,7 +207,7 @@ def get_category_id(category):
 
 class Auctions:
     @staticmethod
-    def get_auctions_by_category(category, count, offset):
+    def get_auctions_by_category(category, count, offset, sort):
         """
         Fetches the auctions from a specific category
         """
@@ -216,13 +216,20 @@ class Auctions:
         if conn is None:
             return []
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, price, image_small, published_at, auction_time, views FROM `auctions` WHERE category_id = %s AND published = TRUE ORDER BY published_at DESC LIMIT %s OFFSET %s", (category_id, count, offset))
+        allowed_sorts = {"published_at", "views", "price"}
+        sort_column = sort if sort in allowed_sorts else "published_at"
+        query = (
+            "SELECT id, name, price, image_small, published_at, auction_time, views "
+            "FROM `auctions` WHERE category_id = %s AND published = TRUE "
+            f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
+        )
+        cursor.execute(query, (category_id, count, offset))
         row = cursor.fetchall()
         cursor.close()
         close_db_connection(conn)
         return row
     @staticmethod
-    def get_all_auctions(count, offset):
+    def get_all_auctions(count, offset, sort):
         """
         Fetches all auctions from the database
         """
@@ -230,7 +237,14 @@ class Auctions:
         if conn is None:
             return []
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, price, image_small, published_at, auction_time, views FROM `auctions` WHERE published = TRUE ORDER BY published_at DESC LIMIT %s OFFSET %s", (count, offset))
+        allowed_sorts = {"published_at", "views", "price"}
+        sort_column = sort if sort in allowed_sorts else "published_at"
+        query = (
+            "SELECT id, name, price, image_small, published_at, auction_time, views "
+            "FROM `auctions` WHERE published = TRUE "
+            f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
+        )
+        cursor.execute(query, (count, offset))
         row = cursor.fetchall()
         cursor.close()
         close_db_connection(conn)

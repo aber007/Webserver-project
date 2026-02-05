@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, render_template, redirect, session, url_for, make_response
 from flask_cors import CORS
+from flasgger import Swagger
 from functools import wraps
 import requests
 import jwt
@@ -12,6 +13,16 @@ from api_routes import api_bp
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
+
+# Initialize Flasgger for API documentation
+swagger = Swagger(app, template={
+    "swagger": "2.0",
+    "info": {
+        "title": "Tradee API",
+        "description": "API for Tradee marketplace",
+        "version": "1.0.0"
+    }
+})
 
 # Register API blueprint
 app.register_blueprint(api_bp)

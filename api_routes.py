@@ -45,21 +45,106 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def check_email_format(email):
+    import re
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(email_regex, email) is not None
+
+parameter_types = {
+    "lastName": str,
+    "firstName": str,
+    "city": str,
+    "email": "email",
+}
+
+def check_valid_json(data, required_fields):
+    if not data:
+        return False
+    for field in required_fields:
+        if field not in data:
+            return False
+    return True
+
 @api_bp.route('/auctions', methods=['GET'])
 def api_search():
+    """
+    Get auctions with optional category filter, sorting, and pagination
+    ---
+    parameters:
+      - name: category
+        in: query
+        type: string
+        description: Filter by category name (e.g., 'clothing', 'furniture')
+        required: false
+      - name: count
+        in: query
+        type: integer
+        default: 6
+        description: Number of auctions to return
+      - name: offset
+        in: query
+        type: integer
+        default: 0
+        description: Number of auctions to skip (for pagination)
+      - name: sort
+        in: query
+        type: string
+        enum: [published_at, views, price]
+        default: published_at
+        description: Sort by column
+    responses:
+      200:
+        description: List of auctions
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              price:
+                type: number
+              image_small:
+                type: string
+              published_at:
+                type: string
+              auction_time:
+                type: integer
+              views:
+                type: integer
+    """
     category = request.args.get('category', "")
     count = request.args.get('count', 6, type=int)
     offset = request.args.get('offset', 0, type=int)
+    sort = request.args.get('sort', "published_at", type=str)
+
     if category:
-        auctions_items = auctions.get_auctions_by_category(category, count, offset)
+        auctions_items = auctions.get_auctions_by_category(category, count, offset, sort)
     else:
-        auctions_items = auctions.get_all_auctions(count, offset)
+        auctions_items = auctions.get_all_auctions(count, offset, sort)
 
     # Check if auctions_items contain expired auctions and set published to False and exclude them
     return jsonify(auctions_items)
 
 @api_bp.route('/auctions/<int:auction_id>', methods=['GET'])
 def api_auction_detail(auction_id):
+    """
+    Get details for a specific auction
+    ---
+    parameters:
+      - name: auction_id
+        in: path
+        type: integer
+        required: true
+        description: The auction ID
+    responses:
+      200:
+        description: Auction details
+      404:
+        description: Auction not found
+    """
     auction = auctions.get_auction_by_id(auction_id)
     if not auction:
         return jsonify({"error": "Auction not found"}), 404
@@ -68,8 +153,36 @@ def api_auction_detail(auction_id):
 @api_bp.route('/auctions/remove_published', methods=['PUT'])
 @token_required
 def remove_published_auctions():
+    """
+    Mark an expired auction as no longer published
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            auction_id:
+              type: integer
+              description: The auction ID to update
+          required:
+            - auction_id
+    responses:
+      200:
+        description: Auction status updated successfully
+      400:
+        description: Invalid request or auction still active
+      401:
+        description: Authentication token missing or invalid
+      404:
+        description: Auction not found
+    """
     # Implement the logic to remove published auctions
-    auction_id = request.json.get('auction_id')
+    data = request.get_json(silent=True)
+    if not check_valid_json(data, ['auction_id']):
+        return jsonify({"error": "Not valid format"}), 400
+    auction_id = data.get('auction_id')
     auction = auctions.get_auction_by_id(auction_id)
     if not auction:
         return jsonify({"error": "Auction not found"}), 404
@@ -87,27 +200,82 @@ def remove_published_auctions():
 @api_bp.route('/auctions/create', methods=['POST'])
 @token_required
 def api_create_auction():
+    """
+    Create a new auction (Not yet implemented)
+    ---
+    responses:
+      501:
+        description: Not implemented
+    """
     # Implement the logic to create a new auction
     return ("", 501)
 
 @api_bp.route('/auctions/update/<int:auction_id>', methods=['PUT'])
 @token_required
 def api_update_auction(auction_id):
+    """
+    Update an existing auction (Not yet implemented)
+    ---
+    parameters:
+      - name: auction_id
+        in: path
+        type: integer
+        required: true
+        description: The auction ID to update
+    responses:
+      501:
+        description: Not implemented
+    """
     # Implement the logic to update an auction
         
     return ("", 501)
 
 @api_bp.route('/users', methods=['POST'])
 def api_create_user():
+    """
+    Create a new user account
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+            password:
+              type: string
+            city:
+              type: string
+          required:
+            - firstName
+            - lastName
+            - email
+            - password
+    responses:
+      201:
+        description: User created successfully
+      400:
+        description: Invalid format or email already exists
+    """
     # Implement the logic to create a new user
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not check_valid_json(data, ['firstName', 'lastName', 'email', 'password']):
+        return jsonify({"error": "Not valid format"}), 400
     first_name = data.get('firstName')
     last_name = data.get('lastName')
     city = data.get('city')
     email = data.get('email')
+    if not check_email_format(email):
+        return jsonify({"error": "Invalid email format"}), 400
     password = data.get('password')
     if not all([first_name, last_name, email, password]):
-        return jsonify({"error": "Missing required fields"}), 400
+        return jsonify({"error": "Not valid format"}), 400
     
     resp = users.create_user(last_name, first_name, city, email, datetime.now(), password)
     if resp is None:
@@ -124,12 +292,36 @@ def api_create_user():
 @api_bp.route('/users', methods=['GET'])
 @token_required
 def api_get_all_users():
+    """
+    Get all users (requires authentication)
+    ---
+    responses:
+      200:
+        description: List of all users
+      401:
+        description: Authentication token missing or invalid
+    """
     # Implement the logic to get all users
     resp = users.get_all_users()
     return (jsonify(resp), 200)
 
 @api_bp.route('/users/<int:user_id>', methods=['GET'])
 def api_get_user(user_id):
+    """
+    Get user details by ID
+    ---
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+        description: The user ID
+    responses:
+      200:
+        description: User details
+      404:
+        description: User not found
+    """
     # Implement the logic to get user details
     resp = users.get_user_by_id(user_id)
     if resp:
@@ -145,13 +337,43 @@ def api_get_user(user_id):
 
 @api_bp.route('/login', methods=['POST'])
 def api_login():
+    """
+    Authenticate user and return JWT token
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+          required:
+            - email
+            - password
+    responses:
+      200:
+        description: Login successful, returns JWT token
+      400:
+        description: Invalid format or missing credentials
+      401:
+        description: Invalid email or password
+    """
     from flask import current_app
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not check_valid_json(data, ['email', 'password']):
+        return jsonify({"error": "Not valid format"}), 400
     email = data.get('email')
     password = data.get('password')
 
     if not email or not password:
         return ("", 400)
+
+    if not check_email_format(email):
+        return jsonify({"error": "Invalid email format"}), 400
 
     user_obj = users.get_user_by_email(email)
     if not user_obj or not bcrypt.checkpw(password.encode(), user_obj.password.encode()):
@@ -160,3 +382,5 @@ def api_login():
     token = jwt.encode({'user_id': user_obj.id, 'exp': datetime.now() + timedelta(hours=1)}, current_app.secret_key, algorithm="HS256")
 
     return jsonify({"token": token, "user": {"id": user_obj.id, "email": user_obj.email}}), 200
+
+

@@ -2,184 +2,132 @@
 %} {% block content %}
 <!-- Hero Section -->
 <section class="hero">
-  <div class="hero-content">
-    <div class="hero-text">
-      <h1>Your Local Marketplace</h1>
-      <p>Buy and sell items from your community</p>
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>Your Local Marketplace</h1>
+            <p>Buy and sell items from your community</p>
+        </div>
+        <div class="search-bar unfinished">
+            <input type="text" placeholder="What are you looking for?" />
+            <button>🔍</button>
+        </div>
+        <div class="popular-tags">
+            <span class="tag-label">Popular:</span>
+            <span class="tag">Electronics</span>
+            <span class="tag">Furniture</span>
+            <span class="tag">Clothing</span>
+            <span class="tag">Books</span>
+            <span class="tag">Toys</span>
+        </div>
     </div>
-    <div class="search-bar unfinished">
-      <input type="text" placeholder="What are you looking for?" />
-      <button>🔍</button>
-    </div>
-    <div class="popular-tags">
-      <span class="tag-label">Popular:</span>
-      <span class="tag">Electronics</span>
-      <span class="tag">Furniture</span>
-      <span class="tag">Clothing</span>
-      <span class="tag">Books</span>
-      <span class="tag">Toys</span>
-    </div>
-  </div>
 </section>
 
 <!-- Categories -->
 <section class="categories">
-  <div class="category-grid">
-    <div class="category-item">
-      <div class="category-icon">👕</div>
-      <span>Clothing</span>
+    <div class="category-grid">
+        <div class="category-item">
+            <div class="category-icon">👕</div>
+            <span>Clothing</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🏺</div>
+            <span>Antiques</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🛋️</div>
+            <span>Furniture</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🎵</div>
+            <span>Music</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🎨</div>
+            <span>Hobby</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🧸</div>
+            <span>Toys</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🎮</div>
+            <span>Gaming</span>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">🚗</div>
+            <span>Vehicles</span>
+        </div>
     </div>
-    <div class="category-item">
-      <div class="category-icon">🏺</div>
-      <span>Antiques</span>
-    </div>
-    <div class="category-item">
-      <div class="category-icon">🛋️</div>
-      <span>Furniture</span>
-    </div>
-    <div class="category-item">
-      <div class="category-icon">🎵</div>
-      <span>Music</span>
-    </div>
-    <div class="category-item">
-      <div class="category-icon">🎨</div>
-      <span>Hobby</span>
-    </div>
-    <div class="category-item">
-      <div class="category-icon">🧸</div>
-      <span>Toys</span>
-    </div>
-    <div class="category-item">
-      <div class="category-icon">🎮</div>
-      <span>Gaming</span>
-    </div>
-    <div class="category-item">
-      <div class="category-icon">🚗</div>
-      <span>Vehicles</span>
-    </div>
-  </div>
-  <script>
-    // Clickable category items
-    document.querySelectorAll(".category-item").forEach((item) => {
-      item.addEventListener("click", () => {
-        const category = item
-          .querySelector("span")
-          .textContent.trim()
-          .toLowerCase();
-        window.location.href = `/auctions?category=${encodeURIComponent(category)}`;
-      });
-    });
-  </script>
+    <script>
+        // Clickable category items
+        document.querySelectorAll(".category-item").forEach((item) => {
+            item.addEventListener("click", () => {
+                const category = item
+                    .querySelector("span")
+                    .textContent.trim()
+                    .toLowerCase();
+                window.location.href = `/auctions?category=${encodeURIComponent(category)}`;
+            });
+        });
+    </script>
 </section>
 
 <!-- Popular Items -->
 <section class="popular-section unfinished">
-  <h2>Popular on Tradee ›</h2>
-  <div class="items-grid">
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>Item Title</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Current bid</p>
-      </div>
+    <h2>Popular</h2>
+    <div class="items-grid" id="popular-grid" data-auction-template="index">
+        {% for i in range(4) %}
+        <div class="item-card">
+            <div class="placeholder-image"></div>
+        </div>
+        {% endfor %}
     </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>Item Title</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Current bid</p>
-      </div>
-    </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>Item Title</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Buy now</p>
-      </div>
-    </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>Item Title</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Current bid</p>
-      </div>
-    </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>Item Title</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Current bid</p>
-      </div>
-    </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>Item Title</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Buy now</p>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- Latest Section -->
 <section class="latest-section unfinished">
-  <h2>Just Added</h2>
-  <div class="items-grid">
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>New Item</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Starting bid</p>
-      </div>
+    <h2>Just Added</h2>
+    <div class="items-grid" id="latest-grid" data-auction-template="index">
+        {% for i in range(4) %}
+        <div class="item-card">
+            <div class="placeholder-image"></div>
+        </div>
+        {% endfor %}
     </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>New Item</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Buy now</p>
-      </div>
-    </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>New Item</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Starting bid</p>
-      </div>
-    </div>
-    <div class="item-card">
-      <div class="item-image"></div>
-      <div class="item-details">
-        <h3>New Item</h3>
-        <p class="item-date">Jan 1 00:00</p>
-        <p class="item-price">0 kr</p>
-        <p class="item-status">Current bid</p>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- Footer -->
 <footer class="footer">
-  <div class="footer-content">
-    <p>&copy; 2026 Tradee. All rights reserved.</p>
-  </div>
+    <div class="footer-content">
+        <p>&copy; 2026 Tradee. All rights reserved.</p>
+    </div>
 </footer>
+<script src="{{ url_for('static', filename='add_auctions.js') }}"></script>
+<script>
+    let latest_offset = 0;
+    let popular_offset = 0;
+    let latest_grid = document.getElementById("latest-grid");
+    let popular_grid = document.getElementById("popular-grid");
+    latest_grid.innerHTML = ""; // Clear placeholders
+    popular_grid.innerHTML = ""; // Clear placeholders
+    addEventListener("DOMContentLoaded", async () => {
+      await add_auctions(
+        "published_at",
+        latest_offset,
+        4,
+        "",
+        "latest-grid",
+        { template: "index", cardSelector: ".item-card" },
+      );
+      await add_auctions(
+        "views",
+        popular_offset,
+        4,
+        "",
+        "popular-grid",
+        { template: "index", cardSelector: ".item-card" },
+      );
+
+    });
+</script>
 {% endblock %}
