@@ -61,6 +61,20 @@ class User:
         return bcrypt.checkpw(password.encode(), self.password.encode())
 
 
+def run_sql(sql, params=None):
+    """
+    Executes a given SQL query with optional parameters and returns the result.
+    """
+    conn = get_db_connection()
+    if conn is None:
+        return None
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(sql, params)
+    result = cursor.fetchall()
+    cursor.close()
+    close_db_connection(conn)
+    return result
+
 class Users:
     @staticmethod
     def create_user(lastName, firstName, city, email, accountCreated, password : str):

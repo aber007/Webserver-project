@@ -1,0 +1,297 @@
+{% extends "base.html" %} {% block title %}Create Auction - Tradee{% endblock %}
+{% block content %}
+<section class="create-auction-page">
+    <div class="create-auction-hero">
+        <div class="create-auction-hero-inner">
+            <div class="create-auction-hero-copy">
+                <p class="create-auction-eyebrow">Create auction</p>
+                <h1>List your item with confidence</h1>
+                <p class="create-auction-subtitle">
+                    Set your price, choose timing, and show off what makes your
+                    item special.
+                </p>
+                <div class="create-auction-pill-row">
+                    <span class="create-auction-pill">Fast setup</span>
+                    <span class="create-auction-pill">Local pickup</span>
+                    <span class="create-auction-pill">Secure bids</span>
+                </div>
+            </div>
+            <div class="create-auction-tips">
+                <div class="create-auction-tip">
+                    <h3>Lead with the photo</h3>
+                    <p>
+                        Bright images with a clean background get the most bids.
+                    </p>
+                </div>
+                <div class="create-auction-tip">
+                    <h3>Keep details clear</h3>
+                    <p>
+                        Size, condition, and pickup location reduce questions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="create-auction-body">
+        <div class="create-auction-layout">
+            <div class="create-auction-form-card">
+                <form
+                    class="create-auction-form"
+                    method="post"
+                    action="/auctions/create"
+                    enctype="multipart/form-data"
+                >
+                    <div class="create-auction-section">
+                        <div class="create-auction-section-header">
+                            <h2>Item basics</h2>
+                            <p>Give buyers a quick, accurate snapshot.</p>
+                        </div>
+                        <div class="create-auction-grid two-col">
+                            <div class="create-auction-field">
+                                <label class="create-auction-label" for="title"
+                                    >Item title</label
+                                >
+                                <input
+                                    class="create-auction-input"
+                                    id="title"
+                                    name="title"
+                                    type="text"
+                                    placeholder="Vintage teak dining table"
+                                    required
+                                />
+                            </div>
+                            <div class="create-auction-field">
+                                <label
+                                    class="create-auction-label"
+                                    for="category"
+                                    >Category</label
+                                >
+                                <select
+                                    class="create-auction-select"
+                                    id="category"
+                                    name="category"
+                                    required
+                                >
+                                    <option value="">Select a category</option>
+                                    <option value="furniture">Furniture</option>
+                                    <option value="electronics">
+                                        Electronics
+                                    </option>
+                                    <option value="fashion">Fashion</option>
+                                    <option value="collectibles">
+                                        Collectibles
+                                    </option>
+                                    <option value="vehicles">Vehicles</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="create-auction-field">
+                                <label
+                                    class="create-auction-label"
+                                    for="condition"
+                                    >Condition</label
+                                >
+                                <select
+                                    class="create-auction-select"
+                                    id="condition"
+                                    name="condition"
+                                    required
+                                >
+                                    <option value="">Select condition</option>
+                                    <option value="new">New</option>
+                                    <option value="like-new">Like new</option>
+                                    <option value="good">Good</option>
+                                    <option value="fair">Fair</option>
+                                </select>
+                            </div>
+                            <div class="create-auction-field">
+                                <label
+                                    class="create-auction-label"
+                                    for="location"
+                                    >Pickup city</label
+                                >
+                                <input
+                                    class="create-auction-input"
+                                    id="location"
+                                    name="location"
+                                    type="text"
+                                    placeholder="Stockholm"
+                                    required
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="create-auction-section">
+                        <div class="create-auction-section-header">
+                            <h2>Pricing and timing</h2>
+                            <p>
+                                Choose how long the auction runs and the
+                                starting price.
+                            </p>
+                        </div>
+                        <div class="create-auction-grid two-col">
+                            <div class="create-auction-field">
+                                <label
+                                    class="create-auction-label"
+                                    for="start-price"
+                                    >Starting price</label
+                                >
+                                <div class="create-auction-input-group">
+                                    <span class="create-auction-addon"
+                                        >SEK</span
+                                    >
+                                    <input
+                                        class="create-auction-input"
+                                        id="start-price"
+                                        name="start_price"
+                                        type="number"
+                                        placeholder="250"
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div class="create-auction-field">
+                                <label
+                                    class="create-auction-label"
+                                    for="reserve"
+                                    >Reserve price</label
+                                >
+                                <div class="create-auction-input-group">
+                                    <span class="create-auction-addon"
+                                        >SEK</span
+                                    >
+                                    <input
+                                        class="create-auction-input"
+                                        id="reserve"
+                                        name="reserve"
+                                        type="number"
+                                        placeholder="Optional"
+                                        min="0"
+                                    />
+                                </div>
+                                <span class="create-auction-help"
+                                    >Visible only to you.</span
+                                >
+                            </div>
+                            <div class="create-auction-field">
+                                <label
+                                    class="create-auction-label"
+                                    for="duration"
+                                    >Auction length</label
+                                >
+                                <select
+                                    class="create-auction-select"
+                                    id="duration"
+                                    name="duration"
+                                    required
+                                >
+                                    <option value="">Select duration</option>
+                                    <option value="24">24 hours</option>
+                                    <option value="72">3 days</option>
+                                    <option value="168">7 days</option>
+                                    <option value="240">10 days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="create-auction-section">
+                        <div class="create-auction-section-header">
+                            <h2>Description</h2>
+                            <p>Share details buyers will ask about.</p>
+                        </div>
+                        <div class="create-auction-field">
+                            <label
+                                class="create-auction-label"
+                                for="description"
+                                >Item description</label
+                            >
+                            <textarea
+                                class="create-auction-textarea"
+                                id="description"
+                                name="description"
+                                placeholder="Condition, measurements, pickup details, and anything else a buyer should know."
+                                rows="6"
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <div class="create-auction-section">
+                        <div class="create-auction-section-header">
+                            <h2>Photos</h2>
+                            <p>Add 1 photo to boost confidence.</p>
+                        </div>
+                        <div class="create-auction-media">
+                            <label class="create-auction-dropzone" for="photos">
+                                <span class="create-auction-dropzone-title"
+                                    >Drag and drop image here</span
+                                >
+                                <span class="create-auction-dropzone-subtitle"
+                                    >JPG or PNG. 10MB max</span
+                                >
+                                <span class="create-auction-dropzone-cta"
+                                    >Choose file</span
+                                >
+                            </label>
+                            <input
+                                class="create-auction-file-input"
+                                id="photos"
+                                name="photos"
+                                type="file"
+                                accept="image/*"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="create-auction-actions">
+                        <button class="create-auction-btn ghost" type="button">
+                            Save draft
+                        </button>
+                        <button
+                            class="create-auction-btn primary"
+                            type="submit"
+                        >
+                            Publish auction
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <aside class="create-auction-preview">
+                <div class="create-auction-preview-card">
+                    <div class="create-auction-preview-image"></div>
+                    <div class="create-auction-preview-body">
+                        <div class="create-auction-preview-price">SEK 250</div>
+                        <h3>Vintage teak dining table</h3>
+                        <p>
+                            Solid wood, seats 6, lightly used. Pickup in
+                            Stockholm.
+                        </p>
+                        <div class="create-auction-preview-tags">
+                            <span>7 days</span>
+                            <span>Pickup</span>
+                            <span>Good condition</span>
+                        </div>
+                        <div class="create-auction-preview-footer">
+                            <span>0 bids</span>
+                            <span>Ends in 6d 4h</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="create-auction-preview-note">
+                    <h4>Listing checklist</h4>
+                    <ul>
+                        <li>Use natural light photos</li>
+                        <li>Measure and mention defects</li>
+                        <li>Set a realistic pickup window</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+{% endblock %}

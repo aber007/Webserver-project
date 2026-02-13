@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Profile - Tradee{% endblock %}
+{% block content %}
+<section class="profile-page">
+    <div class="profile-hero">
+        <div class="profile-hero-content">
+            <div class="profile-identity">
+                <div class="profile-avatar">{{ user.firstName[0] if user and user.firstName else "T" }}</div>
+                <div class="profile-name-block">
+                    <p class="profile-label">Your profile</p>
+                    <h1>
+                        {% if user %}
+                        {{ user.firstName }} {{ user.lastName }}
+                        {% else %}
+                        Tradee Member
+                        {% endif %}
+                    </h1>
+                    <p class="profile-subtitle">
+                        Manage your listings, bids, and account settings in one place.
+                    </p>
+                </div>
+            </div>
+            <div class="profile-hero-actions">
+                <button class="profile-btn secondary" type="button">Edit profile</button>
+                <a class="profile-btn primary" href="/auctions/create">New listing</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-body">
+        <div class="profile-layout">
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2>Account details</h2>
+                    <span class="profile-chip">Verified</span>
+                </div>
+                <div class="profile-info-grid">
+                    <div>
+                        <p class="profile-info-label">Full name</p>
+                        <p class="profile-info-value">
+                            {% if user %}
+                            {{ user.firstName }} {{ user.lastName }}
+                            {% else %}
+                            Tradee Member
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="profile-info-label">Email</p>
+                        <p class="profile-info-value">{{ user.email if user else "member@tradee.com" }}</p>
+                    </div>
+                    <div>
+                        <p class="profile-info-label">Location</p>
+                        <p class="profile-info-value">Add your city</p>
+                    </div>
+                    <div>
+                        <p class="profile-info-label">Member since</p>
+                        <p class="profile-info-value">Feb 2026</p>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div>
+                        <p class="profile-stat-value">4</p>
+                        <p class="profile-stat-label">Active listings</p>
+                    </div>
+                    <div>
+                        <p class="profile-stat-value">12</p>
+                        <p class="profile-stat-label">Bids placed</p>
+                    </div>
+                    <div>
+                        <p class="profile-stat-value">98%</p>
+                        <p class="profile-stat-label">Response rate</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2>Recent activity</h2>
+                    <button class="profile-link" type="button">View all</button>
+                </div>
+                <div class="profile-activity-list">
+                    <div class="profile-activity-item">
+                        <div>
+                            <p class="profile-activity-title">Placed a bid on Vintage Lamp</p>
+                            <p class="profile-activity-meta">2 hours ago · SEK 180</p>
+                        </div>
+                        <span class="profile-activity-tag">Bid</span>
+                    </div>
+                    <div class="profile-activity-item">
+                        <div>
+                            <p class="profile-activity-title">Listing published: Nordic Armchair</p>
+                            <p class="profile-activity-meta">Yesterday · 14 views</p>
+                        </div>
+                        <span class="profile-activity-tag">Listing</span>
+                    </div>
+                    <div class="profile-activity-item">
+                        <div>
+                            <p class="profile-activity-title">Saved: Ceramic Vase Set</p>
+                            <p class="profile-activity-meta">2 days ago · Watchlist</p>
+                        </div>
+                        <span class="profile-activity-tag">Saved</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-section-header">
+                <h2>Your listings</h2>
+                <button class="profile-link" type="button">Manage listings</button>
+            </div>
+            <div class="profile-listings-grid">
+                <div class="profile-listing-card">
+                    <div class="profile-listing-image"></div>
+                    <div class="profile-listing-body">
+                        <p class="profile-listing-title">Teak dining table</p>
+                        <p class="profile-listing-meta">Ends in 2d · 6 bids</p>
+                        <p class="profile-listing-price">SEK 1,450</p>
+                    </div>
+                </div>
+                <div class="profile-listing-card">
+                    <div class="profile-listing-image"></div>
+                    <div class="profile-listing-body">
+                        <p class="profile-listing-title">Vintage stereo deck</p>
+                        <p class="profile-listing-meta">Ends in 5d · 2 bids</p>
+                        <p class="profile-listing-price">SEK 680</p>
+                    </div>
+                </div>
+                <div class="profile-listing-card">
+                    <div class="profile-listing-image"></div>
+                    <div class="profile-listing-body">
+                        <p class="profile-listing-title">Handwoven rug</p>
+                        <p class="profile-listing-meta">Draft · Not published</p>
+                        <p class="profile-listing-price">SEK 520</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

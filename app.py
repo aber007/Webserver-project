@@ -91,6 +91,16 @@ def auction_detail(auction_id):
     # Implement the logic to display auction details
     return render_template('auction_detail.html', auction_id=auction_id, user=session.get('current_user'))
 
+@app.route('/auctions/create')
+@login_required
+def create_auction():
+    return render_template('create_auction.html', user=session.get('current_user'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=session.get('current_user'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('user_id') and session.get('user_id') in users.get_all_user_ids():
