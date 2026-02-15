@@ -11,7 +11,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host='localhost',
             user='root', 
-            password='',  
+            password='password',  
             database='tradee_db'
         )
     except mysql.connector.Error as err:
@@ -61,19 +61,26 @@ class User:
         return bcrypt.checkpw(password.encode(), self.password.encode())
 
 
-def run_sql(sql, params=None):
+def run_sql(sql, params=None, *, fetch_one=False, fetch_all=True, commit=False, dictionary=True):
     """
     Executes a given SQL query with optional parameters and returns the result.
     """
     conn = get_db_connection()
     if conn is None:
         return None
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql, params)
-    result = cursor.fetchall()
-    cursor.close()
-    close_db_connection(conn)
-    return result
+    cursor = conn.cursor(dictionary=dictionary)
+    try:
+        cursor.execute(sql, params)
+        if commit:
+            conn.commit()
+        if fetch_one:
+            return cursor.fetchone()
+        if fetch_all:
+            return cursor.fetchall()
+        return cursor.rowcount
+    finally:
+        cursor.close()
+        close_db_connection(conn)
 
 class Users:
     @staticmethod
@@ -81,24 +88,20 @@ class Users:
         """
         Inserts a new user into the database.
         """
-        conn = get_db_connection()
-        if conn is None:
-            return None
-        cursor = conn.cursor()
 
 
         hashed_pass = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        sql = "INSERT INTO users (lastName, firstName, city, accountCreated, password, email) VALUES (%s, %s, %s, %s, %s, %s)"
         try:
-            cursor.execute(
-                "INSERT INTO users (lastName, firstName, city, accountCreated, password, email) VALUES (%s, %s, %s, %s, %s, %s)", 
-                (lastName, firstName, city, accountCreated, hashed_pass, email)
+            run_sql(
+                sql,
+                (lastName, firstName, city, accountCreated, hashed_pass, email),
+                commit=True,
+                fetch_all=False,
             )
         except mysql.connector.IntegrityError as e:
             print(f"Error inserting user: {e}")
             return None
-        conn.commit()
-        cursor.close()
-        close_db_connection(conn)
         user_obj = Users.get_user_by_email(email)
         return user_obj
 
@@ -109,14 +112,9 @@ class Users:
         Retrieves a user from the database by user ID and returns a User instance.
         Returns None if no user is found.
         """
-        conn = get_db_connection()
-        if conn is None:
-            return None
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE ID = %s", (user_id,))
-        row = cursor.fetchone()
-        cursor.close()
-        close_db_connection(conn)
+
+        sql = "SELECT * FROM users WHERE ID = %s"
+        row = run_sql(sql, (user_id,), fetch_one=True, fetch_all=False)
 
         if not row:
             return None
@@ -129,63 +127,41 @@ class Users:
         Retrieves a user from the database by email and returns a User instance.
         Returns None if no user is found.
         """
-        conn = get_db_connection()
-        if conn is None:
-            return None
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        row = cursor.fetchone()
-        cursor.close()
-        close_db_connection(conn)
+        sql = "SELECT * FROM users WHERE email = %s"
+        row = run_sql(sql, (email,), fetch_one=True, fetch_all=False)
 
         if not row:
             return None
 
-        # Map DB row to User dataclass. Keep field names consistent with DB columns.
         return user_row_to_user(row)
     @staticmethod
     def get_all_user_ids():
         """
         Retrieves all user IDs from the database.
         """
-        conn = get_db_connection()
-        if conn is None:
+        rows = run_sql("SELECT ID FROM users")
+        if not rows:
             return []
-        cursor = conn.cursor()
-        cursor.execute("SELECT ID FROM users")
-        rows = cursor.fetchall()
-        cursor.close()
-        close_db_connection(conn)
-
-        return [row[0] for row in rows]
+        return [row["ID"] for row in rows]
 
     @staticmethod
     def delete_user(user_id):
         """
         Deletes a user from the database by user ID.
         """
-        conn = get_db_connection()
-        if conn is None:
-            return
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM users WHERE ID = %s", (user_id,))
-        conn.commit()
-        cursor.close()
-        close_db_connection(conn)
+        run_sql("DELETE FROM users WHERE ID = %s", (user_id,), commit=True, fetch_all=False)
 
     @staticmethod
     def update_user_email(user_id, new_email):
         """
         Updates the email of a user in the database.
         """
-        conn = get_db_connection()
-        if conn is None:
-            return
-        cursor = conn.cursor()
-        cursor.execute("UPDATE users SET email = %s WHERE ID = %s", (new_email, user_id))
-        conn.commit()
-        cursor.close()
-        close_db_connection(conn)
+        run_sql(
+            "UPDATE users SET email = %s WHERE ID = %s",
+            (new_email, user_id),
+            commit=True,
+            fetch_all=False,
+        )
     
 
     @staticmethod
@@ -193,30 +169,21 @@ class Users:
         """
         Fetches all users from the database
         """
-        conn = get_db_connection()
-        if conn is None:
-            return []
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT ID, lastName, firstName, city, email FROM users")
-        rows = cursor.fetchall()
-        cursor.close()
-        close_db_connection(conn)
-        return rows
+        rows = run_sql("SELECT ID, lastName, firstName, city, email FROM users")
+        return rows or []
 
 def get_category_id(category):
         """
         Returns category_id of category name
         """
-        conn = get_db_connection()
-        if conn is None:
-            return None
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM `categories` WHERE name = %s", (category,))
-        row = cursor.fetchone()
-        cursor.close()
-        close_db_connection(conn)
+        row = run_sql(
+            "SELECT id FROM `categories` WHERE name = %s",
+            (category,),
+            fetch_one=True,
+            fetch_all=False,
+        )
         if row:
-            return row[0]
+            return row["id"]
         return None
 
 class Auctions:
@@ -226,67 +193,110 @@ class Auctions:
         Fetches the auctions from a specific category
         """
         category_id = get_category_id(category)
-        conn = get_db_connection()
-        if conn is None:
-            return []
-        cursor = conn.cursor(dictionary=True)
         allowed_sorts = {"published_at", "views", "price"}
         sort_column = sort if sort in allowed_sorts else "published_at"
         query = (
-            "SELECT id, name, price, image_small, published_at, auction_time, views "
-            "FROM `auctions` WHERE category_id = %s AND published = TRUE "
+            "SELECT a.id, a.name, a.price, a.image_small, a.published_at, a.auction_time, a.views, "
+            "c.name AS category_name, COUNT(b.id) AS bid_count "
+            "FROM auctions a "
+            "INNER JOIN categories c ON a.category_id = c.id "
+            "LEFT JOIN bids b ON b.auction_id = a.id "
+            "WHERE a.category_id = %s AND a.published = TRUE "
+            "GROUP BY a.id, a.name, c.name "
             f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
         )
-        cursor.execute(query, (category_id, count, offset))
-        row = cursor.fetchall()
-        cursor.close()
-        close_db_connection(conn)
-        return row
+        rows = run_sql(query, (category_id, count, offset))
+        return rows or []
     @staticmethod
     def get_all_auctions(count, offset, sort):
         """
         Fetches all auctions from the database
         """
-        conn = get_db_connection()
-        if conn is None:
-            return []
-        cursor = conn.cursor(dictionary=True)
         allowed_sorts = {"published_at", "views", "price"}
         sort_column = sort if sort in allowed_sorts else "published_at"
         query = (
-            "SELECT id, name, price, image_small, published_at, auction_time, views "
-            "FROM `auctions` WHERE published = TRUE "
+            "SELECT a.id, a.name, a.price, a.image_small, a.published_at, a.auction_time, a.views, "
+            "c.name AS category_name, COUNT(b.id) AS bid_count "
+            "FROM auctions a "
+            "INNER JOIN categories c ON a.category_id = c.id "
+            "LEFT JOIN bids b ON b.auction_id = a.id "
+            "WHERE a.published = TRUE "
+            "GROUP BY a.id, a.name, c.name "
             f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
         )
-        cursor.execute(query, (count, offset))
-        row = cursor.fetchall()
-        cursor.close()
-        close_db_connection(conn)
-        return row
+        rows = run_sql(query, (count, offset))
+        return rows or []
     @staticmethod
     def get_auction_by_id(auction_id):
         """
         Fetches a specific auction by its ID
         """
-        conn = get_db_connection()
-        if conn is None:
-            return None
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM `auctions` WHERE id = %s AND published = TRUE", (auction_id,))
-        row = cursor.fetchone()
-        cursor.close()
-        close_db_connection(conn)
-        return row
+        return run_sql(
+            "SELECT a.*, c.name AS category_name, COUNT(b.id) AS bid_count FROM auctions a INNER JOIN categories c ON a.category_id = c.id LEFT JOIN bids b ON b.auction_id = a.id WHERE a.id = %s AND a.published = TRUE GROUP BY a.id, a.name, c.name;",
+            (auction_id,),
+            fetch_one=True,
+            fetch_all=False,
+        )
     @staticmethod
     def update_published(auction_id, published_status):
         """
         Updates the published status of an auction
         """
+        run_sql(
+            "UPDATE auctions SET published = %s WHERE id = %s",
+            (published_status, auction_id),
+            commit=True,
+            fetch_all=False,
+        )
+    @staticmethod
+    def place_bid(auction_id, user_id, bid_amount):
+        """
+        Places a bid on an auction and updates the current price if the bid is valid.
+        """
+        # Get current price of the auction
+        auction = Auctions.get_auction_by_id(auction_id)
+        if not auction:
+            return False  # Auction not found
+        current_price = auction['price']
+        
+        if bid_amount <= current_price:
+            return False  # Bid must be higher than current price
+        
+        # Insert new bid into bids table
         conn = get_db_connection()
         if conn is None:
-            return
+            return False
         cursor = conn.cursor()
-        cursor.execute("UPDATE auctions SET published = %s WHERE id = %s", (published_status, auction_id))
-        conn.commit()
-        cursor.close()
-        close_db_connection(conn)
+        try:
+            cursor.execute(
+            "INSERT INTO bids (auction_id, user_id, price) VALUES (%s, %s, %s)",
+            (auction_id, user_id, bid_amount)
+            )
+            cursor.execute(
+            "UPDATE auctions SET price = %s, leader_id = %s WHERE id = %s",
+            (bid_amount, user_id, auction_id)
+            )
+            conn.commit()
+        except mysql.connector.Error as e:
+            conn.rollback()
+            print(f"Error placing bid: {e}")
+            return False
+        finally:
+            cursor.close()
+            close_db_connection(conn)
+        
+        return True
+    @staticmethod
+    def get_popular_categories():
+        """
+        Fetches the most popular categories based on the number of auctions.
+        """
+        query = (
+            "SELECT categories.name AS category, SUM(auctions.views) AS views "
+            "FROM auctions "
+            "JOIN categories ON auctions.category_id = categories.id "
+            "GROUP BY categories.id, categories.name "
+            "ORDER BY views DESC "
+        )
+        rows = run_sql(query)
+        return rows or []

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from functools import wraps
 import jwt
 import bcrypt
@@ -65,6 +65,24 @@ def check_valid_json(data, required_fields):
             return False
     return True
 
+@api_bp.route('/categories', methods=['GET'])
+def api_categories():
+    """
+    Get all available categories
+    ---
+    responses:
+      200:
+        description: List of categories
+        schema:
+          type: array
+          items:
+            type: string
+    """
+    categories = auctions.get_popular_categories()
+    if not categories:
+        return jsonify([]), 500
+    return jsonify(categories), 200
+
 @api_bp.route('/auctions', methods=['GET'])
 def api_search():
     """
@@ -125,7 +143,6 @@ def api_search():
     else:
         auctions_items = auctions.get_all_auctions(count, offset, sort)
 
-    # Check if auctions_items contain expired auctions and set published to False and exclude them
     return jsonify(auctions_items)
 
 @api_bp.route('/auctions/<int:auction_id>', methods=['GET'])
@@ -149,6 +166,73 @@ def api_auction_detail(auction_id):
     if not auction:
         return jsonify({"error": "Auction not found"}), 404
     return jsonify(auction)
+
+@api_bp.route('/auctions/<int:auction_id>/bid', methods=['POST'])
+@token_required
+def api_place_bid(auction_id):
+    """
+    Place a bid on an auction
+    ---
+    parameters:
+      - name: auction_id
+        in: path
+        type: integer
+        required: true
+        description: The auction ID to bid on
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            amount:
+              type: number
+              description: The bid amount (must be higher than current highest bid)
+          required:
+            - amount
+    responses:
+      200:
+        description: Bid placed successfully
+      400:
+        description: Invalid bid amount or auction not found or auction is not active or user is not authenticated or user is the owner of the auction or bid is too low or user has already placed a bid on this auction or user has insufficient funds (not implemented)
+      401:
+        description: Authentication token missing or invalid
+      404:
+        description: Auction not found
+    """
+    data = request.get_json(silent=True)
+    if not check_valid_json(data, ['amount']):
+        return jsonify({"error": "Not valid format"}), 400
+
+    amount = data.get('amount')
+    if not isinstance(amount, (int, float)) or amount <= 0:
+        return jsonify({"error": "Invalid bid amount"}), 400
+
+    auction = auctions.get_auction_by_id(auction_id)
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
+
+    if not auction['published']:
+        return jsonify({"error": "Auction is no longer published"}), 400
+
+    current_bid = auction['price']
+    if amount <= current_bid:
+        return jsonify({"error": "Bid must be higher than current highest bid"}), 400
+
+    # Get user id from token or cookie
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+    elif request.cookies.get('jwt_token'):
+        token = request.cookies.get('jwt_token')
+    else:
+        return jsonify({"error": "Authentication token is missing"}), 401
+    user_id = jwt.decode(token, current_app.secret_key, algorithms=["HS256"])['user_id']
+    
+    # Update the auction with the new highest bid and increment number of bids.
+
+    auctions.place_bid(auction_id, user_id, amount)
+    return jsonify({"message": "Bid placed successfully"}), 200
 
 @api_bp.route('/auctions/remove_published', methods=['PUT'])
 @token_required

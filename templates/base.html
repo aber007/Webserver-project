@@ -1,39 +1,88 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{% block title %}Tradee{% endblock %}</title>
-        <link
-            rel="stylesheet"
-            href="{{ url_for('static', filename='style.css') }}"
-        />
-    </head>
-    <body>
-        <!-- Header Navigation -->
-        <header class="header">
-            <div class="header-content">
-                <button class="menu-btn unfinished">Menu</button>
-                <div class="logo"><a class="logo-link" href="/">TRADEE</a></div>
-                <nav class="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/auctions">Auctions</a>
-                    <a href="/auctions/create">New listing</a>
-                    {% if not user %}
-                    <a href="/login">Log in</a>
-                    <a href="/signup" class="btn-primary">Create account</a>
-                    {% else %}
-                    <a href="/profile"
-                        ><img
-                            class="pfp"
-                            src="{{ url_for('static', filename='pfp.jpg') }}"
-                            alt="Profile"
-                    /></a>
-                    {% endif %}
-                </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Tradee{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header Navigation -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo"><a class="logo-link" href="/">TRADEE</a></div>
+        <nav class="nav-links">
+          <a href="/">Home</a>
+          <a href="/auctions">Auctions</a>
+          <a href="/auctions/create">New listing</a>
+          {% if not user %}
+          <a href="/login">Log in</a>
+          <a href="/signup" class="btn-primary">Create account</a>
+          {% else %}
+          <div class="profile-menu" data-profile-menu>
+            <button
+              class="profile-menu-toggle"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="Open profile menu"
+            >
+              <img
+                class="pfp"
+                src="{{ url_for('static', filename='pfp.jpg') }}"
+                alt="Profile"
+              />
+            </button>
+            <div class="profile-menu-panel" role="menu">
+              <a role="menuitem" href="/profile">Show profile</a>
+              <a role="menuitem" href="/profile#listings">Manage listings</a>
+              <a role="menuitem" href="/logout">Log out</a>
             </div>
-        </header>
+          </div>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
 
-        {% block content %}{% endblock %}
-    </body>
+    {% block content %}{% endblock %}
+    <script>
+      const profileMenu = document.querySelector("[data-profile-menu]");
+      if (profileMenu) {
+        const toggle = profileMenu.querySelector(".profile-menu-toggle");
+        const panel = profileMenu.querySelector(".profile-menu-panel");
+
+        const closeMenu = () => {
+          profileMenu.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        };
+
+        toggle.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isOpen = profileMenu.classList.toggle("is-open");
+          toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+        panel.addEventListener("click", (event) => {
+          if (event.target.matches("a")) {
+            closeMenu();
+          }
+        });
+
+        document.addEventListener("click", (event) => {
+          if (!profileMenu.contains(event.target)) {
+            closeMenu();
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeMenu();
+          }
+        });
+      }
+    </script>
+  </body>
 </html>

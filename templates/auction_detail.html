@@ -39,12 +39,12 @@
           <p id="seller_member_since">Member since: </p>
         </div>
 
-        <div class="auction-actions unfinished">
+        <div class="auction-actions">
           <div class="bid-section">
-            <input type="number" placeholder="Enter your bid" min="130" />
+            <input id="bid-input" type="number" placeholder="Enter your bid" min="130" />
             <button class="btn-bid">Place Bid</button>
           </div>
-          <button class="btn-watchlist">Add to Watchlist</button>
+          <button class="btn-watchlist unfinished">Add to Watchlist</button>
         </div>
       </div>
     </div>
@@ -56,21 +56,47 @@
         <div class="bid-item">
           <span class="bid-user">User 1</span>
           <span class="bid-amount">$125</span>
-          <span class="bid-time">2 hours ago</span>
         </div>
         <div class="bid-item">
           <span class="bid-user">User 2</span>
           <span class="bid-amount">$115</span>
-          <span class="bid-time">4 hours ago</span>
         </div>
         <div class="bid-item">
           <span class="bid-user">User 3</span>
           <span class="bid-amount">$100</span>
-          <span class="bid-time">1 day ago</span>
         </div>
       </div>
     </div>
   </div>
+  <script>
+    const bidInput = document.getElementById("bid-input");
+    const bidButton = document.querySelector(".btn-bid");
+    const auctionId = "{{ auction_id }}";
+    bidButton.addEventListener("click", async () => {
+      const bidValue = parseFloat(bidInput.value);
+      if (isNaN(bidValue) || bidValue <= 0) {
+        alert("Please enter a valid bid amount.");
+        return;
+      }
+      try {
+        const response = await fetch(`${window.location.origin}/api/auctions/${auctionId}/bid`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ amount: bidValue }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to place bid");
+        }
+      } catch (error) {
+        console.error("Error placing bid:", error);
+        alert(`Error placing bid: ${error.message}`);
+      }
+
+    });
+  </script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const auctionId = "{{ auction_id }}";
@@ -84,6 +110,7 @@
       const sellerMemberSinceElem = document.getElementById(
         "seller_member_since",
       );
+      const bidInputElem = document.getElementById("bid-input");
       const imgElem = document.querySelector(".auction-image-large");
 
       try {
@@ -117,6 +144,8 @@
         imgElem.appendChild(img);
         currentBidElem.textContent = auction.price + " kr";
 
+        bidInputElem.min = auction.price + 1;
+
         const remainingSeconds = (publishedAt, durationSeconds) => {
           const startMs = Date.parse(publishedAt);
           if (Number.isNaN(startMs) || !Number.isFinite(durationSeconds))
@@ -143,7 +172,7 @@
           remaining,
         )}`;
 
-        numberOfBidsElem.textContent = `Number of Bids: ${auction.numberOfBids}`;
+        numberOfBidsElem.textContent = `Number of Bids: ${auction.bid_count}`;
         descriptionTextElem.textContent = auction.description;
         sellerNameElem.innerHTML = `Seller: <strong>${auction.seller.firstName} ${auction.seller.lastName}</strong>`;
         sellerLocationElem.textContent = `Location: ${auction.seller.city}`;
@@ -155,7 +184,7 @@
           sellerMemberSinceElem.textContent = `Member since: N/A`;
         }
       } catch (error) {
-        console.error("Error fetching auction details:", error);
+        console.error("Error fetching auction details:");
       }
     });
   </script>

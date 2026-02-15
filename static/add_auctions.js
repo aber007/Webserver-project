@@ -18,13 +18,9 @@ const add_auctions = async (
         loadingByContainer.set(loadingKey, false);
         return;
     }
-    const template =
-        options.template || auctions_grid.dataset.auctionTemplate || "auction";
-    const cardSelector =
-        options.cardSelector ||
-        (template === "index" ? ".item-card" : ".auction-card");
+    const cardSelector = options.cardSelector || ".auction-preview-card";
     const placeholderSelector =
-        options.placeholderSelector || ".placeholder-image";
+        options.placeholderSelector || ".auction-preview-placeholder";
     let auctions = [];
     let url = "";
     const formatTime = (seconds) => {
@@ -102,44 +98,56 @@ const add_auctions = async (
             continue; // Skip rendering this auction
         }
 
-        const auctionCard = document.createElement("div");
-        if (template === "index") {
-            auctionCard.className = "item-card";
-            auctionCard.innerHTML = `
-          <div class="item-image" style="background-image: url('${auction.image_small}')"></div>
-          <div class="item-details">
-            <h3>${auction.name}</h3>
-            <p class="item-date">${auction.published_at}</p>
-            <p class="item-price">${auction.price} kr</p>
-            <p class="item-status">Current bid</p>
-          </div>
-        `;
-        } else {
-            auctionCard.className = "auction-card";
-            auctionCard.innerHTML = `
-          <img src="${auction.image_small}" alt="Auction Image" class="item-image" />
-          <div class="item-details">
-            <h3>${auction.name}</h3>
-            <p class="item-date">${auction.published_at}</p>
-            <p class="item-price">${auction.price} kr</p>
-            <p class="item-status">Current bid</p>
-            <div class="auction-details">
-              <span class="time-left">${formatTime(
-                  remainingSeconds(auction.published_at, auction.auction_time),
-              )}</span>
-              <a href="/auctions/${auction.id}" class="btn-view">View</a>
-            </div>
-          </div>
-        `;
-            const timeLeftSpan = auctionCard.querySelector(".time-left");
-            if (timeLeftSpan) {
-                auctionElements.push({
-                    element: timeLeftSpan,
-                    published_at: auction.published_at,
-                    auction_time: auction.auction_time,
+                const auctionCard = document.createElement("div");
+                const bidCount = Number.isFinite(auction.bid_count)
+                        ? auction.bid_count
+                        : Number.isFinite(auction.bids)
+                                ? auction.bids
+                                : 0;
+                const tags = [];
+                if (auction.category_name) {
+                        tags.push(auction.category_name);
+                }
+                if (auction.auction_condition) {
+                        tags.push(auction.auction_condition);
+                }
+                if (auction.location) {
+                        tags.push(auction.location);
+                }
+                const tagsMarkup = tags.length
+                        ? tags
+                                    .map((tag) => `<span class="auction-preview-tag">${tag}</span>`)
+                                    .join("")
+                        : "";
+                const endsIn = formatTime(
+                        remainingSeconds(auction.published_at, auction.auction_time),
+                );
+                auctionCard.className = "auction-preview-card auction-preview-card--small";
+                auctionCard.addEventListener("click", () => {
+                    window.location.href = `/auctions/${auction.id}`;
                 });
-            }
-        }
+                auctionCard.innerHTML = `
+                    <div class="auction-preview-image" style="background-image: url('${auction.image_small}')"></div>
+                    <div class="auction-preview-body">
+                        <div class="auction-preview-price">SEK ${auction.price}</div>
+                        <h3 class="auction-preview-title">${auction.name}</h3>
+                        <div class="auction-preview-tags">${tagsMarkup}</div>
+                        <div class="auction-preview-footer">
+                            <span class="auction-preview-bids">${bidCount} ${
+                                    bidCount === 1 ? "bid" : "bids"
+                            }</span>
+                            <span class="auction-preview-time">Ends in ${endsIn}</span>
+                        </div>
+                    </div>
+                `;
+                const timeLeftSpan = auctionCard.querySelector(".auction-preview-time");
+                if (timeLeftSpan) {
+                        auctionElements.push({
+                                element: timeLeftSpan,
+                                published_at: auction.published_at,
+                                auction_time: auction.auction_time,
+                        });
+                }
 
         const firstPlaceholder = auctions_grid
             .querySelector(placeholderSelector)
@@ -156,9 +164,9 @@ const add_auctions = async (
         setInterval(() => {
             auctionElements.forEach(
                 ({ element, published_at, auction_time }) => {
-                    element.textContent = formatTime(
+                    element.textContent = `Ends in ${formatTime(
                         remainingSeconds(published_at, auction_time),
-                    );
+                    )}`;
                 },
             );
         }, 1000);

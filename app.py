@@ -56,7 +56,8 @@ def login_required(f):
                 'id': user.id,
                 'firstName': user.firstName,
                 'lastName': user.lastName,
-                'email': user.email
+                'email': user.email,
+                'city': user.city
             }
             
         except jwt.ExpiredSignatureError:
@@ -72,6 +73,16 @@ def login_required(f):
         
         return f(*args, **kwargs)
     return decorated_function
+
+def decode_jwt_token(token):
+    try:
+        data = jwt.decode(token, app.secret_key, algorithms=["HS256"])
+        return data
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
 
 @app.route('/')
 def home():
@@ -99,7 +110,15 @@ def create_auction():
 @app.route('/profile')
 @login_required
 def profile():
+    print("Accessing profile page for user:", session.get('current_user'))
     return render_template('profile.html', user=session.get('current_user'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    response = make_response(redirect(url_for('home')))
+    response.set_cookie('jwt_token', '', expires=0)
+    return response
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -121,7 +140,7 @@ def login():
         }, app.secret_key, algorithm="HS256")
 
         # Store token in secure HTTP-only cookie
-        response = make_response(redirect(url_for('home')))
+        response = make_response(redirect(request.referrer or url_for('home')))
         response.set_cookie('jwt_token', token, httponly=True, max_age=3600)  # 1 hour
         
         # Also store in session as backup
@@ -130,11 +149,20 @@ def login():
             'id': user_obj.id,
             'firstName': user_obj.firstName,
             'lastName': user_obj.lastName,
-            'email': user_obj.email
+            'email': user_obj.email,
+            'city': user_obj.city
         }
         
         return response
     return render_template('login.html')
+
+@app.route('/docs/<path:path>') 
+def serve_docs(path):
+    if path == "tos":
+        return render_template('tos.html')
+    elif path == "privacy":
+        return render_template('privacy.html')
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -153,7 +181,8 @@ def signup():
             'id': resp.id,
             'firstName': resp.firstName,
             'lastName': resp.lastName,
-            'email': resp.email
+            'email': resp.email,
+            'city': resp.city
         }
 
         if resp:

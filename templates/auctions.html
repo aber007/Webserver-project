@@ -16,8 +16,8 @@ block content %}
 
     <div class="auctions-grid" id="auctions-grid">
       {% for i in range(3) %}
-      <div class="auction-card">
-        <div class="placeholder-image"></div>
+      <div class="auction-preview-card auction-preview-card--small">
+        <div class="auction-preview-image auction-preview-placeholder"></div>
       </div>
       {% endfor %}
     </div>
@@ -34,7 +34,7 @@ block content %}
   addEventListener("DOMContentLoaded", async () => {
     auctions_offset = await add_auctions("published_at", auctions_offset, auctions_per_page, category, "auctions-grid");
   });
-  first_placeholder = document.querySelector(".auction-card");
+  first_placeholder = document.querySelector(".auction-preview-card");
   addEventListener("scroll", async () => {
     const scrollTop = window.scrollY;
     const windowHeight = window.innerHeight;
