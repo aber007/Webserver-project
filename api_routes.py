@@ -3,10 +3,14 @@ from flask import Blueprint, current_app, jsonify, request
 from functools import wraps
 import jwt
 import bcrypt
+from sentence_transformers import SentenceTransformer, util
+
 
 from db import Users, Auctions
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 users = Users()
 auctions = Auctions()
@@ -134,6 +138,7 @@ def api_search():
                 type: integer
     """
     category = request.args.get('category', "")
+    query = request.args.get('query', "")
     count = request.args.get('count', 6, type=int)
     offset = request.args.get('offset', 0, type=int)
     sort = request.args.get('sort', "published_at", type=str)
@@ -142,6 +147,13 @@ def api_search():
         auctions_items = auctions.get_auctions_by_category(category, count, offset, sort)
     else:
         auctions_items = auctions.get_all_auctions(count, offset, sort)
+    
+    if query:
+        texts = [f"{item['name']}" for item in auctions_items]
+        query_embedding = model.encode(query, convert_to_tensor=True)
+        doc_embeddings = model.encode(texts, convert_to_tensor=True)
+        scores = util.cos_sim(query_embedding, doc_embeddings)
+        auctions_items = [item for _, item in sorted(zip(scores[0], auctions_items), key=lambda x: x[0], reverse=True)]
 
     return jsonify(auctions_items)
 

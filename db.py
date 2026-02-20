@@ -3,6 +3,7 @@ import hashlib
 import bcrypt
 from dataclasses import dataclass
 from typing import Optional
+
 def get_db_connection():
     """
     Creates and returns a new database connection.

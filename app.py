@@ -95,7 +95,8 @@ def home():
 def search():
     # Display auctions
     category = request.args.get('category', "")
-    return render_template('auctions.html', user=session.get('current_user'), category=category)
+    query = request.args.get('query', "")
+    return render_template('auctions.html', user=session.get('current_user'), category=category, query=query)
 
 @app.route('/auctions/<int:auction_id>')
 @login_required
