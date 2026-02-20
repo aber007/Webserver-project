@@ -11,7 +11,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host='localhost',
             user='root', 
-            password='password',  
+            password='',  
             database='tradee_db'
         )
     except mysql.connector.Error as err:

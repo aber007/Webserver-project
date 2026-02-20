@@ -7,7 +7,7 @@ import requests
 import jwt
 import bcrypt
 
-import db
+
 from db import Users, Auctions
 from api_routes import api_bp
 
@@ -36,8 +36,9 @@ def login_required(f):
         token = request.cookies.get('jwt_token')
         
         if not token:
+            
             session.clear()
-            return redirect(url_for('login'))
+            return redirect(url_for('login', next=request.url))
         
         try:
             # Decode and validate token (automatically checks expiration)
@@ -48,7 +49,7 @@ def login_required(f):
             user = users.get_user_by_id(user_id)
             if not user:
                 session.clear()
-                response = make_response(redirect(url_for('login')))
+                response = make_response(redirect(url_for('login', next=request.url)))
                 response.set_cookie('jwt_token', '', expires=0)
                 return response
             
@@ -63,13 +64,13 @@ def login_required(f):
         except jwt.ExpiredSignatureError:
             # Token expired - auto logout
             session.clear()
-            response = make_response(redirect(url_for('login')))
+            response = make_response(redirect(url_for('login', next=request.url)))
             response.set_cookie('jwt_token', '', expires=0)
             return response
         except jwt.InvalidTokenError:
             # Invalid token
             session.clear()
-            return redirect(url_for('login'))
+            return redirect(url_for('login', next=request.url))
         
         return f(*args, **kwargs)
     return decorated_function
@@ -122,13 +123,13 @@ def logout():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    next_url = request.args.get('next')
     if session.get('user_id') and session.get('user_id') in users.get_all_user_ids():
-        return redirect(url_for('home'))
+        return redirect(next_url if next_url else url_for('home'))
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # Directly authenticate instead of calling your own API
         user_obj = users.get_user_by_email(email)
         if not user_obj or not bcrypt.checkpw(password.encode(), user_obj.password.encode()):
             return render_template('login.html', error="Invalid credentials")
@@ -140,7 +141,7 @@ def login():
         }, app.secret_key, algorithm="HS256")
 
         # Store token in secure HTTP-only cookie
-        response = make_response(redirect(request.referrer or url_for('home')))
+        response = make_response(redirect(next_url if next_url else url_for('home')))
         response.set_cookie('jwt_token', token, httponly=True, max_age=3600)  # 1 hour
         
         # Also store in session as backup
