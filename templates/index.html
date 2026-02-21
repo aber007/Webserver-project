@@ -7,9 +7,9 @@
       <h1>Your Local Marketplace</h1>
       <p>Buy and sell items from your community</p>
     </div>
-    <div class="search-bar unfinished">
-      <input type="text" placeholder="What are you looking for?" />
-      <button>🔍</button>
+    <div class="search-bar">
+      <input type="text" placeholder="What are you looking for?" id="search-input" />
+      <button id="search-button">🔍</button>
     </div>
     <div class="popular-tags">
       <span class="tag-label">Popular:</span>
@@ -138,5 +138,21 @@
       popular_categories.appendChild(tag);
     });
   });
+</script>
+<script>
+    const searchInput = document.getElementById("search-input");
+    const searchButton = document.getElementById("search-button");
+
+    searchInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            const query = event.target.value;
+            window.location.href = `${window.location.origin}/auctions?query=${encodeURIComponent(query)}`;
+        }
+    });
+
+    searchButton.addEventListener("click", function () {
+        const query = searchInput.value;
+        window.location.href = `${window.location.origin}/auctions?query=${encodeURIComponent(query)}`;
+    });
 </script>
 {% endblock %}

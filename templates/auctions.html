@@ -2,50 +2,87 @@
 block content %}
 <!-- Auctions Section -->
 <section class="auctions-section">
-  <div class="auctions-container">
-    <h1>Active Auctions</h1>
+    <div class="auctions-container">
+        <h1>Active Auctions</h1>
 
-    <div class="search-bar-auctions unfinished">
-      <input
-        id="search-auctions"
-        type="text"
-        placeholder="Search auctions..."
-      />
-      <button>Search</button>
-    </div>
+        <div class="search-bar-auctions unfinished">
+            <input
+                id="search-auctions"
+                type="text"
+                value="{{query if query}}"
+                placeholder="Search auctions..."
+            />
+            <button id="search-button">Search</button>
+        </div>
 
-    <div class="auctions-grid" id="auctions-grid">
-      {% for i in range(3) %}
-      <div class="auction-preview-card auction-preview-card--small">
-        <div class="auction-preview-image auction-preview-placeholder"></div>
-      </div>
-      {% endfor %}
+        <div class="auctions-grid" id="auctions-grid">
+            {% for i in range(3) %}
+            <div class="auction-preview-card auction-preview-card--small">
+                <div
+                    class="auction-preview-image auction-preview-placeholder"
+                ></div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-  </div>
 </section>
-<script src="{{ url_for('static', filename='add_auctions.js') }}">
+<script src="{{ url_for('static', filename='add_auctions.js') }}"></script>
+<script>
+    document
+        .getElementById("search-auctions")
+        .addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                const query = event.target.value;
+                window.location.href = `${window.location.origin}/auctions?query=${encodeURIComponent(query)}`;
+            }
+        });
+    const searchButton = document.getElementById("search-button");
+    searchButton.addEventListener("click", function () {
+        const query = document.getElementById("search-auctions").value;
+        window.location.href = `${window.location.origin}/auctions?query=${encodeURIComponent(query)}`;
+    });
 </script>
 <script>
-  auctions_per_page = 8;
-  auctions_offset = 0;
-  const category = "{{category}}";
-  let isLoading = false;
+    auctions_per_page = 8;
+    auctions_offset = 0;
+    const category = "{{category}}";
+    let isLoading = false;
+    const query = "{{query}}";
+    console.log("Query:", query);
 
-  addEventListener("DOMContentLoaded", async () => {
-    auctions_offset = await add_auctions("published_at", auctions_offset, auctions_per_page, category, "auctions-grid");
-  });
-  first_placeholder = document.querySelector(".auction-preview-card");
-  addEventListener("scroll", async () => {
-    const scrollTop = window.scrollY;
-    const windowHeight = window.innerHeight;
-    const docHeight = document.body.offsetHeight;
+    addEventListener("DOMContentLoaded", async () => {
+        auctions_offset = await add_auctions(
+            "published_at",
+            auctions_offset,
+            auctions_per_page,
+            category,
+            "auctions-grid",
+            {},
+            query,
+        );
+    });
+    first_placeholder = document.querySelector(".auction-preview-card");
+    window.auctionsScrollHandler = async () => {
+        const scrollTop = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const docHeight = document.body.offsetHeight;
 
-    if (first_placeholder) {
-      const firstPlaceholderRect = first_placeholder.getBoundingClientRect();
-      if (firstPlaceholderRect.top < windowHeight) {
-        auctions_offset = await add_auctions("published_at", auctions_offset, auctions_per_page, category, "auctions-grid");
-      }
-    }
-  });
+        if (first_placeholder) {
+            const firstPlaceholderRect =
+                first_placeholder.getBoundingClientRect();
+            if (firstPlaceholderRect.top < windowHeight) {
+                auctions_offset = await add_auctions(
+                    "published_at",
+                    auctions_offset,
+                    auctions_per_page,
+                    category,
+                    "auctions-grid",
+                    {},
+                    query,
+                );
+            }
+        }
+    };
+    addEventListener("scroll", window.auctionsScrollHandler);
 </script>
 {% endblock %}

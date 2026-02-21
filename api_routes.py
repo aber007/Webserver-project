@@ -10,7 +10,7 @@ from db import Users, Auctions
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('all-MiniLM-L6-v2', local_files_only=True)
 
 users = Users()
 auctions = Auctions()
@@ -87,6 +87,14 @@ def api_categories():
         return jsonify([]), 500
     return jsonify(categories), 200
 
+def query_search(query, auctions_items):
+    texts = [f"{item['name']}" for item in auctions_items]
+    query_embedding = model.encode(query, convert_to_tensor=True)
+    doc_embeddings = model.encode(texts, convert_to_tensor=True)
+    scores = util.cos_sim(query_embedding, doc_embeddings)
+    auctions_items = [item for _, item in sorted(zip(scores[0], auctions_items), key=lambda x: x[0], reverse=True)]
+    return auctions_items
+
 @api_bp.route('/auctions', methods=['GET'])
 def api_search():
     """
@@ -142,18 +150,24 @@ def api_search():
     count = request.args.get('count', 6, type=int)
     offset = request.args.get('offset', 0, type=int)
     sort = request.args.get('sort', "published_at", type=str)
+    count_temp = None
+
+    if query:
+        count_temp = count
+        offset_temp = offset
+        count = 1000 # All auctions
+        offset = 0
 
     if category:
         auctions_items = auctions.get_auctions_by_category(category, count, offset, sort)
     else:
         auctions_items = auctions.get_all_auctions(count, offset, sort)
-    
+
     if query:
-        texts = [f"{item['name']}" for item in auctions_items]
-        query_embedding = model.encode(query, convert_to_tensor=True)
-        doc_embeddings = model.encode(texts, convert_to_tensor=True)
-        scores = util.cos_sim(query_embedding, doc_embeddings)
-        auctions_items = [item for _, item in sorted(zip(scores[0], auctions_items), key=lambda x: x[0], reverse=True)]
+      # This is shit but it looks alright
+      auctions_items = query_search(query, auctions_items)
+      auctions_items = auctions_items[offset_temp:offset_temp+count_temp]
+        
 
     return jsonify(auctions_items)
 

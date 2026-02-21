@@ -7,12 +7,12 @@ const add_auctions = async (
     category = "",
     auctions_location_id = "auctions-grid",
     options = {},
+    query = "",
 ) => {
     const loadingKey = auctions_location_id || "default";
     if (loadingByContainer.get(loadingKey)) return;
     loadingByContainer.set(loadingKey, true);
     console.log("Fetching auctions");
-    console.log("Current offset:", auctions_offset);
     const auctions_grid = document.getElementById(auctions_location_id);
     if (!auctions_grid) {
         loadingByContainer.set(loadingKey, false);
@@ -42,9 +42,9 @@ const add_auctions = async (
         return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
     };
     if (category) {
-        url = `${window.location.origin}/api/auctions?category=${category}&count=${auctions_per_page}&offset=${auctions_offset}&sort=${sort_method}`;
+        url = `${window.location.origin}/api/auctions?category=${category}&count=${auctions_per_page}&offset=${auctions_offset}&sort=${sort_method}&query=${query}`;
     } else {
-        url = `${window.location.origin}/api/auctions?count=${auctions_per_page}&offset=${auctions_offset}&sort=${sort_method}`;
+        url = `${window.location.origin}/api/auctions?count=${auctions_per_page}&offset=${auctions_offset}&sort=${sort_method}&query=${query}`;
     }
     try {
         const response = await fetch(url);
@@ -52,7 +52,6 @@ const add_auctions = async (
             throw new Error("Response not ok: " + response.status);
         }
         auctions = await response.json();
-        console.log(auctions);
     } catch (error) {
         console.error("Error fetching auctions:", error);
         auctions_grid.innerHTML =
@@ -69,7 +68,12 @@ const add_auctions = async (
             const placeholders =
                 auctions_grid.querySelectorAll(placeholderSelector);
             placeholders.forEach((p) => p.closest(cardSelector)?.remove());
-            removeEventListener("scroll");
+            if (window.auctionsScrollHandler) {
+                window.removeEventListener(
+                    "scroll",
+                    window.auctionsScrollHandler,
+                );
+            }
         }
         loadingByContainer.set(loadingKey, false);
         return;
@@ -98,35 +102,39 @@ const add_auctions = async (
             continue; // Skip rendering this auction
         }
 
-                const auctionCard = document.createElement("div");
-                const bidCount = Number.isFinite(auction.bid_count)
-                        ? auction.bid_count
-                        : Number.isFinite(auction.bids)
-                                ? auction.bids
-                                : 0;
-                const tags = [];
-                if (auction.category_name) {
-                        tags.push(auction.category_name);
-                }
-                if (auction.auction_condition) {
-                        tags.push(auction.auction_condition);
-                }
-                if (auction.location) {
-                        tags.push(auction.location);
-                }
-                const tagsMarkup = tags.length
-                        ? tags
-                                    .map((tag) => `<span class="auction-preview-tag">${tag}</span>`)
-                                    .join("")
-                        : "";
-                const endsIn = formatTime(
-                        remainingSeconds(auction.published_at, auction.auction_time),
-                );
-                auctionCard.className = "auction-preview-card auction-preview-card--small";
-                auctionCard.addEventListener("click", () => {
-                    window.location.href = `/auctions/${auction.id}`;
-                });
-                auctionCard.innerHTML = `
+        const auctionCard = document.createElement("div");
+        const bidCount = Number.isFinite(auction.bid_count)
+            ? auction.bid_count
+            : Number.isFinite(auction.bids)
+              ? auction.bids
+              : 0;
+        const tags = [];
+        if (auction.category_name) {
+            tags.push(auction.category_name);
+        }
+        if (auction.auction_condition) {
+            tags.push(auction.auction_condition);
+        }
+        if (auction.location) {
+            tags.push(auction.location);
+        }
+        const tagsMarkup = tags.length
+            ? tags
+                  .map(
+                      (tag) =>
+                          `<span class="auction-preview-tag">${tag}</span>`,
+                  )
+                  .join("")
+            : "";
+        const endsIn = formatTime(
+            remainingSeconds(auction.published_at, auction.auction_time),
+        );
+        auctionCard.className =
+            "auction-preview-card auction-preview-card--small";
+        auctionCard.addEventListener("click", () => {
+            window.location.href = `/auctions/${auction.id}`;
+        });
+        auctionCard.innerHTML = `
                     <div class="auction-preview-image" style="background-image: url('${auction.image_small}')"></div>
                     <div class="auction-preview-body">
                         <div class="auction-preview-price">SEK ${auction.price}</div>
@@ -134,20 +142,20 @@ const add_auctions = async (
                         <div class="auction-preview-tags">${tagsMarkup}</div>
                         <div class="auction-preview-footer">
                             <span class="auction-preview-bids">${bidCount} ${
-                                    bidCount === 1 ? "bid" : "bids"
+                                bidCount === 1 ? "bid" : "bids"
                             }</span>
                             <span class="auction-preview-time">Ends in ${endsIn}</span>
                         </div>
                     </div>
                 `;
-                const timeLeftSpan = auctionCard.querySelector(".auction-preview-time");
-                if (timeLeftSpan) {
-                        auctionElements.push({
-                                element: timeLeftSpan,
-                                published_at: auction.published_at,
-                                auction_time: auction.auction_time,
-                        });
-                }
+        const timeLeftSpan = auctionCard.querySelector(".auction-preview-time");
+        if (timeLeftSpan) {
+            auctionElements.push({
+                element: timeLeftSpan,
+                published_at: auction.published_at,
+                auction_time: auction.auction_time,
+            });
+        }
 
         const firstPlaceholder = auctions_grid
             .querySelector(placeholderSelector)
