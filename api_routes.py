@@ -386,8 +386,8 @@ def api_create_user():
     password = data.get('password')
     if not all([first_name, last_name, email, password]):
         return jsonify({"error": "Not valid format"}), 400
-    
-    resp = users.create_user(last_name, first_name, city, email, datetime.now(), password)
+    account_created = datetime.now().strftime('%Y-%m-%d')
+    resp = users.create_user(last_name, first_name, city, email, account_created, password)
     if resp is None:
         return jsonify({"error": "Error creating user"}), 400
     resp = {

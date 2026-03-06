@@ -3,6 +3,10 @@ import hashlib
 import bcrypt
 from dataclasses import dataclass
 from typing import Optional
+import os
+import dotenv
+
+dotenv.load_dotenv()
 
 def get_db_connection():
     """
@@ -12,7 +16,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host='localhost',
             user='root', 
-            password='',  
+            password=os.getenv('DB_PASSWORD'),  
             database='tradee_db'
         )
     except mysql.connector.Error as err:
@@ -89,6 +93,7 @@ class Users:
         """
         Inserts a new user into the database.
         """
+        print("Account created:", accountCreated)
 
 
         hashed_pass = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()

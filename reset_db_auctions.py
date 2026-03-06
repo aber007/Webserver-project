@@ -65,7 +65,14 @@ auctions_send = f"""INSERT INTO `auctions` (`id`, `name`, `description`, `price`
 (159, 'Porsche-emblemet med en häst- och stuttgart-text', 'This is an example auction item.', 580, 'https://images.unsplash.com/photo-1759784082315-cf16eaf54bd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NjI0MTR8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk2NzMwMzh8&ixlib=rb-4.1.0&q=80&w=400', 'https://images.unsplash.com/photo-1759784082315-cf16eaf54bd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NjI0MTR8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk2NzMwMzh8&ixlib=rb-4.1.0&q=80&w=1080', 1, NULL, 551882, '{yesterday_date} 08:50:52', 1, '3', 0),
 (160, 'Man som täcker ansiktet med handen i ökenlandskapet', 'This is an example auction item.', 550, 'https://images.unsplash.com/photo-1761131239571-b1fd759b5d89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NjI0MTR8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk2NzMwMzh8&ixlib=rb-4.1.0&q=80&w=400', 'https://images.unsplash.com/photo-1761131239571-b1fd759b5d89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NjI0MTR8MHwxfHJhbmRvbXx8fHx8fHx8fDE3Njk2NzMwMzh8&ixlib=rb-4.1.0&q=80&w=1080', 1, NULL, 121880, '{yesterday_date} 08:50:53', 1, '3', 20);"""
 
-auctions_reset = "DELETE FROM auctions;"
 
-run_sql(auctions_reset, commit=True, fetch_one=False, fetch_all=False)
-run_sql(auctions_send, commit=True, fetch_one=False, fetch_all=False)
+
+
+get_auctions = "SELECT * FROM auctions;" 
+
+auctions = run_sql(get_auctions, commit=False, fetch_one=False, fetch_all=True)
+
+# Set all dates to yesterday's date and published to 1
+yesterday_date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 24*60*60))
+update_auctions = f"UPDATE auctions SET published = 1, published_at = '{yesterday_date} 08:48:38' WHERE id >= 132 AND id <= 160;"
+run_sql(update_auctions, commit=True, fetch_one=False, fetch_all=False)

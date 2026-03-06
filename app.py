@@ -3,16 +3,19 @@ from flask import Flask, jsonify, request, render_template, redirect, session, u
 from flask_cors import CORS
 from flasgger import Swagger
 from functools import wraps
+import dotenv
+import os
 import requests
 import jwt
 import bcrypt
 
+dotenv.load_dotenv()
 
 from db import Users, Auctions
 from api_routes import api_bp
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+app.secret_key = os.getenv('SECRET_KEY', 'supersecretkey')
 
 # Initialize Flasgger for API documentation
 swagger = Swagger(app, template={
@@ -58,7 +61,8 @@ def login_required(f):
                 'firstName': user.firstName,
                 'lastName': user.lastName,
                 'email': user.email,
-                'city': user.city
+                'city': user.city,
+                'accountCreated': user.accountCreated
             }
             
         except jwt.ExpiredSignatureError:
@@ -152,7 +156,8 @@ def login():
             'firstName': user_obj.firstName,
             'lastName': user_obj.lastName,
             'email': user_obj.email,
-            'city': user_obj.city
+            'city': user_obj.city,
+            'accountCreated': user_obj.accountCreated
         }
         
         return response
@@ -175,8 +180,20 @@ def signup():
         city = request.form.get('location')
         email = request.form.get('email')
         password = request.form.get('password')
+        account_created = datetime.now().strftime('%Y-%m-%d')
         
-        resp = users.create_user(last_name, first_name, city, email, password)
+        resp = users.create_user(last_name, first_name, city, email, account_created, password)
+        user_obj = users.get_user_by_email(email)
+
+        # Create JWT token with expiration (e.g., 1 hour)
+        token = jwt.encode({
+            'user_id': user_obj.id, 
+            'exp': datetime.now() + timedelta(hours=1)  # Auto logout after 1 hour
+        }, app.secret_key, algorithm="HS256")
+        
+        # Store token in secure HTTP-only cookie
+        response = make_response(redirect(url_for('home')))
+        response.set_cookie('jwt_token', token, httponly=True, max_age=3600)  # 1 hour
 
         session['user_id'] = resp.id
         session['current_user'] = {
@@ -184,11 +201,12 @@ def signup():
             'firstName': resp.firstName,
             'lastName': resp.lastName,
             'email': resp.email,
-            'city': resp.city
+            'city': resp.city,
+            'accountCreated': resp.accountCreated
         }
 
         if resp:
-            return redirect(url_for('login'))
+            return response
         else:
             return "Error creating user", 400
 

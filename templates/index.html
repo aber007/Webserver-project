@@ -135,6 +135,11 @@
       const tag = document.createElement("span");
       tag.className = "tag";
       tag.textContent = category.category.charAt(0).toUpperCase() + category.category.slice(1);
+      tag.addEventListener("click", () => {
+        window.location.href = `/auctions?category=${encodeURIComponent(
+          category.category,
+        )}`;
+      });
       popular_categories.appendChild(tag);
     });
   });

@@ -53,7 +53,7 @@ block content %}
           </div>
           <div>
             <p class="profile-info-label">Member since</p>
-            <p class="profile-info-value">Feb 2026</p>
+            <p class="profile-info-value">{{ user.accountCreated if user else "Not specified" }}</p>
           </div>
         </div>
         <div class="profile-stats">
@@ -64,10 +64,6 @@ block content %}
           <div>
             <p class="profile-stat-value">12</p>
             <p class="profile-stat-label">Bids placed</p>
-          </div>
-          <div>
-            <p class="profile-stat-value">98%</p>
-            <p class="profile-stat-label">Response rate</p>
           </div>
         </div>
       </div>
