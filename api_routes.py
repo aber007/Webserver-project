@@ -314,11 +314,26 @@ def api_create_auction():
     Create a new auction (Not yet implemented)
     ---
     responses:
-      501:
-        description: Not implemented
+      400:
+        description: Invalid request format
+      401:
+        description: Authentication token missing or invalid
+      201:
+        description: Auction created successfully
     """
     # Implement the logic to create a new auction
-    return ("", 501)
+    data = request.get_json(silent=True)
+    if not check_valid_json(data, ['name', 'description', 'category', 'price', 'auction_time', 'location', 'condition', 'published', 'seller_id']):
+        return jsonify({"error": "Not valid format"}), 400
+    
+    print("Creating auction with data:", data)
+    
+    if data['image_small'] is None:
+        data['image_small'] = data['image_large']
+    resp = auctions.create_auction(data['name'], data['description'], data['price'], data['category'], data['image_small'], data['image_large'], data['auction_time'], data['location'], data['condition'], data['published'], data['seller_id'])
+    if resp is None:
+        return jsonify({"error": "Error creating auction"}), 400
+    return jsonify({"message": "Auction created successfully"}), 201
 
 @api_bp.route('/auctions/update/<int:auction_id>', methods=['PUT'])
 @token_required

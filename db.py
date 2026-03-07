@@ -244,6 +244,19 @@ class Auctions:
             fetch_all=False,
         )
     @staticmethod
+    def create_auction(name, description, price, category_id, image_small, image_large, auction_time, location, condition, published, seller_id):
+        """
+        Inserts a new auction into the database.
+        """
+        resp = run_sql(
+            "INSERT INTO auctions (name, description, price, category_id, image_small, image_large, auction_time, location, item_condition, published, seller_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (name, description, price, category_id, image_small, image_large, auction_time, location, condition, published, seller_id),
+            commit=True,
+            fetch_all=False,
+        )
+        print("Auction creation response:", resp)
+        return True
+    @staticmethod
     def update_published(auction_id, published_status):
         """
         Updates the published status of an auction
