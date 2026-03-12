@@ -74,5 +74,5 @@ auctions = run_sql(get_auctions, commit=False, fetch_one=False, fetch_all=True)
 
 # Set all dates to yesterday's date and published to 1
 yesterday_date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 24*60*60))
-update_auctions = f"UPDATE auctions SET published = 1, published_at = '{yesterday_date} 08:48:38' WHERE id >= 132 AND id <= 160;"
+update_auctions = f"UPDATE auctions SET published = 1, published_at = '{yesterday_date} 08:48:38';"
 run_sql(update_auctions, commit=True, fetch_one=False, fetch_all=False)

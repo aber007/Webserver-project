@@ -244,13 +244,14 @@ class Auctions:
             fetch_all=False,
         )
     @staticmethod
-    def create_auction(name, description, price, category_id, image_small, image_large, auction_time, location, condition, published, seller_id):
+    def create_auction(name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at):
         """
         Inserts a new auction into the database.
         """
+
         resp = run_sql(
-            "INSERT INTO auctions (name, description, price, category_id, image_small, image_large, auction_time, location, item_condition, published, seller_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (name, description, price, category_id, image_small, image_large, auction_time, location, condition, published, seller_id),
+            "INSERT INTO auctions (name, description, price, category_id, image_small, image_regular, auction_time, location, auction_condition, published, owner_id, published_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at),
             commit=True,
             fetch_all=False,
         )

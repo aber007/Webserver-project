@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+import os
 from flask import Blueprint, current_app, jsonify, request
+from werkzeug.utils import secure_filename
 from functools import wraps
 import jwt
 import bcrypt
@@ -10,7 +12,7 @@ from db import Users, Auctions
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
-model = SentenceTransformer('all-MiniLM-L6-v2', local_files_only=True)
+model = SentenceTransformer('all-MiniLM-L6-v2', local_files_only=False)
 
 users = Users()
 auctions = Auctions()
@@ -321,16 +323,73 @@ def api_create_auction():
       201:
         description: Auction created successfully
     """
-    # Implement the logic to create a new auction
+    # Accept both JSON and multipart/form-data (used by the create_auction.html form).
     data = request.get_json(silent=True)
-    if not check_valid_json(data, ['name', 'description', 'category', 'price', 'auction_time', 'location', 'condition', 'published', 'seller_id']):
-        return jsonify({"error": "Not valid format"}), 400
-    
-    print("Creating auction with data:", data)
-    
-    if data['image_small'] is None:
-        data['image_small'] = data['image_large']
-    resp = auctions.create_auction(data['name'], data['description'], data['price'], data['category'], data['image_small'], data['image_large'], data['auction_time'], data['location'], data['condition'], data['published'], data['seller_id'])
+    is_multipart = request.content_type and 'multipart/form-data' in request.content_type
+
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+    elif request.cookies.get('jwt_token'):
+        token = request.cookies.get('jwt_token')
+    else:
+        # Fallback to JSON body for backwards compatibility
+        data = request.get_json(silent=True) or {}
+        token = data.get('authentication')
+    seller_id = jwt.decode(token, current_app.secret_key, algorithms=["HS256"])['user_id']
+
+    if is_multipart:
+      form = request.form
+      image_file = request.files.get('image_large')
+      static = current_app.static_folder
+      upload_folder = os.path.join(static, 'uploaded_images')
+      os.makedirs(upload_folder, exist_ok=True)
+      image_file.filename = secure_filename(image_file.filename)
+      if image_file and image_file.filename:
+          image_path = os.path.join(upload_folder, image_file.filename)
+          image_file.save(image_path)
+
+      required_fields = ['name', 'description', 'category', 'price', 'auction_time', 'location', 'condition', 'published']
+      missing_fields = [field for field in required_fields if not form.get(field)]
+      if missing_fields:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+      if image_file is None or not image_file.filename:
+        return jsonify({"error": "image_large file is required"}), 400
+
+      # Persist filename only for now to match existing DB column usage.
+      image_large = '/' + os.path.join('static', 'uploaded_images', image_file.filename).replace('\\', '/') if image_file and image_file.filename else None
+      print("Received multipart form data with image file:", image_large)
+      payload = {
+        'name': form.get('name'),
+        'description': form.get('description'),
+        'category': form.get('category'),
+        'price': form.get('price'),
+        'auction_time': form.get('auction_time'),
+        'location': form.get('location'),
+        'condition': form.get('condition'),
+        'published': str(form.get('published')).lower() == 'true',
+        'image_regular': image_large,
+        'image_small': image_large,
+      }
+    else:
+        return jsonify({"error": "Only multipart/form-data is supported for auction creation"}), 400
+
+    print("Creating auction with data:", payload)
+
+    resp = auctions.create_auction(
+      payload['name'],
+      payload['description'],
+      payload['price'],
+      payload['category'],
+      payload['image_small'],
+      payload['image_regular'],
+      payload['auction_time'],
+      payload['location'],
+      payload['condition'],
+      payload['published'],
+      seller_id,
+      datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
     if resp is None:
         return jsonify({"error": "Error creating auction"}), 400
     return jsonify({"message": "Auction created successfully"}), 201

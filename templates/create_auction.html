@@ -456,39 +456,4 @@
         });
     }
 </script>
-<script>
-    async function formDataToJson(form) {
-        const fd = new FormData(form);
-        const obj = {};
-
-        for (const [key, value] of fd.entries()) {
-            if (value instanceof File) {
-                // JSON cannot contain raw File objects; encode to base64
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result); // data:*/*;base64,...
-                    reader.onerror = reject;
-                    reader.readAsDataURL(value);
-                });
-                obj[key] = { name: value.name, type: value.type, data: base64 };
-            } else {
-                obj[key] = value;
-            }
-        }
-
-        return obj;
-    }
-
-    async function submitAsJson(form) {
-        const payload = await formDataToJson(form);
-
-        const res = await fetch("/api/auctions/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        console.log(await res.text());
-    }
-</script>
 {% endblock %}
