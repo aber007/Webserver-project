@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request, render_template, redirect, session, u
 from flask_cors import CORS
 from flasgger import Swagger
 from functools import wraps
+from werkzeug.exceptions import HTTPException
 import dotenv
 import os
 import requests
@@ -32,6 +33,14 @@ app.register_blueprint(api_bp)
 
 users = Users()
 auctions = Auctions()
+
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(err):
+    # Keep Flask HTTP errors (404/405/etc.) unchanged; normalize true server errors to empty 500.
+    if isinstance(err, HTTPException):
+        return err
+    return ("", 500)
 
 def login_required(f):
     @wraps(f)

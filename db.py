@@ -194,7 +194,7 @@ def get_category_id(category):
 
 class Auctions:
     @staticmethod
-    def get_auctions_by_category(category, count, offset, sort):
+    def get_auctions_by_category(category, count, offset, sort, user=None):
         """
         Fetches the auctions from a specific category
         """
@@ -207,14 +207,14 @@ class Auctions:
             "FROM auctions a "
             "INNER JOIN categories c ON a.category_id = c.id "
             "LEFT JOIN bids b ON b.auction_id = a.id "
-            "WHERE a.category_id = %s AND a.published = TRUE "
+            f"WHERE a.category_id = %s AND a.published = TRUE {'AND a.seller_id = %s' if user else ''}"
             "GROUP BY a.id, a.name, c.name "
             f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
         )
-        rows = run_sql(query, (category_id, count, offset))
+        rows = run_sql(query, (category_id, user.id) if user else (category_id,), fetch_all=True)
         return rows or []
     @staticmethod
-    def get_all_auctions(count, offset, sort):
+    def get_all_auctions(count, offset, sort, user=None):
         """
         Fetches all auctions from the database
         """
@@ -256,7 +256,10 @@ class Auctions:
             fetch_all=False,
         )
         print("Auction creation response:", resp)
-        return True
+        id = run_sql("SELECT LAST_INSERT_ID() AS id", fetch_one=True, fetch_all=False)
+        if id:
+            return id["id"]
+        return None
     @staticmethod
     def update_published(auction_id, published_status):
         """

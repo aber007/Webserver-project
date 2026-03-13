@@ -425,7 +425,7 @@
                     body: formData,
                 });
                 if (response.ok) {
-                    window.location.href = "/profile";
+                    window.location.href = "/auctions/" + (await response.json()).auction_id;
                 } else {
                     const errorMessage = await getErrorMessage(response);
                     console.error(errorMessage);
@@ -446,7 +446,7 @@
                     body: formData,
                 });
                 if (response.ok) {
-                    window.location.href = "/profile";
+                    window.location.href = "/auctions/" + (await response.json()).auction_id;
                 } else {
                     const errorMessage = await getErrorMessage(response);
                     console.error(errorMessage);

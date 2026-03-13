@@ -1,0 +1,224 @@
+﻿{
+    "_type":  "export",
+    "__export_format":  4,
+    "__export_date":  "2026-03-12T00:00:00.000Z",
+    "__export_source":  "gpt-5.3-codex",
+    "resources":  [
+                      {
+                          "_id":  "wrk_tradee_api",
+                          "_type":  "workspace",
+                          "name":  "Tradee API",
+                          "description":  "Insomnia collection for the Webserver-project Flask API"
+                      },
+                      {
+                          "_id":  "env_tradee_base",
+                          "_type":  "environment",
+                          "parentId":  "wrk_tradee_api",
+                          "name":  "Base Environment",
+                          "data":  {
+                                       "base_url":  "http://127.0.0.1:5000",
+                                       "token":  "",
+                                       "auction_id":  1,
+                                       "user_id":  1
+                                   }
+                      },
+                      {
+                          "_id":  "fld_public",
+                          "_type":  "request_group",
+                          "parentId":  "wrk_tradee_api",
+                          "name":  "Public"
+                      },
+                      {
+                          "_id":  "fld_auth",
+                          "_type":  "request_group",
+                          "parentId":  "wrk_tradee_api",
+                          "name":  "Auth"
+                      },
+                      {
+                          "_id":  "fld_auctions",
+                          "_type":  "request_group",
+                          "parentId":  "wrk_tradee_api",
+                          "name":  "Auctions"
+                      },
+                      {
+                          "_id":  "fld_users",
+                          "_type":  "request_group",
+                          "parentId":  "wrk_tradee_api",
+                          "name":  "Users"
+                      },
+                      {
+                          "_id":  "req_categories",
+                          "_type":  "request",
+                          "parentId":  "fld_public",
+                          "name":  "GET /api/categories",
+                          "method":  "GET",
+                          "url":  "{{ _.base_url }}/api/categories",
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Categories returns 200\", () =\u003e {\n  insomnia.expect(status).to.eql(200);\n});\n\nconst body = insomnia.response.json();\ninsomnia.test(\"Categories returns array\", () =\u003e {\n  insomnia.expect(body).to.be.an(\"array\");\n});"
+                      },
+                      {
+                          "_id":  "req_login",
+                          "_type":  "request",
+                          "parentId":  "fld_auth",
+                          "name":  "POST /api/login",
+                          "method":  "POST",
+                          "url":  "{{ _.base_url }}/api/login",
+                          "headers":  [
+                                          {
+                                              "name":  "Content-Type",
+                                              "value":  "application/json"
+                                          }
+                                      ],
+                          "body":  {
+                                       "mimeType":  "application/json",
+                                       "text":  "{\n  \"email\": \"user@example.com\",\n  \"password\": \"your-password\"\n}"
+                                   },
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Login returns 200\", () =\u003e {\n  insomnia.expect(status).to.eql(200);\n});\n\nconst body = insomnia.response.json();\ninsomnia.test(\"Login response has token and user\", () =\u003e {\n  insomnia.expect(body).to.have.property(\"token\");\n  insomnia.expect(body).to.have.property(\"user\");\n  insomnia.expect(body.user).to.have.property(\"id\");\n});\n\nif (body \u0026\u0026 body.token) {\n  insomnia.environment.set(\"token\", body.token);\n}\nif (body \u0026\u0026 body.user \u0026\u0026 body.user.id !== undefined) {\n  insomnia.environment.set(\"user_id\", body.user.id);\n}"
+                      },
+                      {
+                          "_id":  "req_auctions_list",
+                          "_type":  "request",
+                          "parentId":  "fld_auctions",
+                          "name":  "GET /api/auctions",
+                          "method":  "GET",
+                          "url":  "{{ _.base_url }}/api/auctions?category=\u0026query=\u0026user=\u0026count=6\u0026offset=0\u0026sort=published_at",
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Auctions list returns 200\", () =\u003e {\n  insomnia.expect(status).to.eql(200);\n});\n\nconst body = insomnia.response.json();\ninsomnia.test(\"Auctions list returns array\", () =\u003e {\n  insomnia.expect(body).to.be.an(\"array\");\n});"
+                      },
+                      {
+                          "_id":  "req_auction_detail",
+                          "_type":  "request",
+                          "parentId":  "fld_auctions",
+                          "name":  "GET /api/auctions/:auction_id",
+                          "method":  "GET",
+                          "url":  "{{ _.base_url }}/api/auctions/{{ _.auction_id }}",
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Auction detail status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([200, 404]);\n});\n\nif (status === 200) {\n  const body = insomnia.response.json();\n  insomnia.test(\"Auction detail has id\", () =\u003e {\n    insomnia.expect(body).to.have.property(\"id\");\n  });\n}"
+                      },
+                      {
+                          "_id":  "req_place_bid",
+                          "_type":  "request",
+                          "parentId":  "fld_auctions",
+                          "name":  "POST /api/auctions/:auction_id/bid",
+                          "method":  "POST",
+                          "url":  "{{ _.base_url }}/api/auctions/{{ _.auction_id }}/bid",
+                          "headers":  [
+                                          {
+                                              "name":  "Authorization",
+                                              "value":  "Bearer {{ _.token }}"
+                                          },
+                                          {
+                                              "name":  "Content-Type",
+                                              "value":  "application/json"
+                                          }
+                                      ],
+                          "body":  {
+                                       "mimeType":  "application/json",
+                                       "text":  "{\n  \"amount\": 100.0\n}"
+                                   },
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Place bid status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([200, 400, 401, 404]);\n});"
+                      },
+                      {
+                          "_id":  "req_remove_published",
+                          "_type":  "request",
+                          "parentId":  "fld_auctions",
+                          "name":  "PUT /api/auctions/remove_published",
+                          "method":  "PUT",
+                          "url":  "{{ _.base_url }}/api/auctions/remove_published",
+                          "headers":  [
+                                          {
+                                              "name":  "Authorization",
+                                              "value":  "Bearer {{ _.token }}"
+                                          },
+                                          {
+                                              "name":  "Content-Type",
+                                              "value":  "application/json"
+                                          }
+                                      ],
+                          "body":  {
+                                       "mimeType":  "application/json",
+                                       "text":  "{\n  \"auction_id\": {{ _.auction_id }}\n}"
+                                   },
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Remove published status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([200, 400, 401, 404]);\n});"
+                      },
+                      {
+                          "_id":  "req_create_auction",
+                          "_type":  "request",
+                          "parentId":  "fld_auctions",
+                          "name":  "POST /api/auctions/create",
+                          "method":  "POST",
+                          "url":  "{{ _.base_url }}/api/auctions/create",
+                          "headers":  [
+                                          {
+                                              "name":  "Authorization",
+                                              "value":  "Bearer {{ _.token }}"
+                                          },
+                                          {
+                                              "name":  "Content-Type",
+                                              "value":  "application/json"
+                                          }
+                                      ],
+                          "body":  {
+                                       "mimeType":  "application/json",
+                                       "text":  "{\n  \"name\": \"Vintage Chair\",\n  \"description\": \"Solid wood chair in great condition\",\n  \"category\": \"furniture\",\n  \"price\": 50.0,\n  \"auction_time\": 86400,\n  \"location\": \"Stockholm\",\n  \"condition\": \"used\",\n  \"published\": true,\n  \"image_small\": null,\n  \"image_large\": \"https://example.com/images/chair.jpg\"\n}"
+                                   },
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Create auction status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([200, 400, 401]);\n});"
+                      },
+                      {
+                          "_id":  "req_update_auction",
+                          "_type":  "request",
+                          "parentId":  "fld_auctions",
+                          "name":  "PUT /api/auctions/update/:auction_id (Not Implemented)",
+                          "method":  "PUT",
+                          "url":  "{{ _.base_url }}/api/auctions/update/{{ _.auction_id }}",
+                          "headers":  [
+                                          {
+                                              "name":  "Authorization",
+                                              "value":  "Bearer {{ _.token }}"
+                                          }
+                                      ],
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Update auction currently not implemented or unauthorized\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([501, 401]);\n});"
+                      },
+                      {
+                          "_id":  "req_create_user",
+                          "_type":  "request",
+                          "parentId":  "fld_users",
+                          "name":  "POST /api/users",
+                          "method":  "POST",
+                          "url":  "{{ _.base_url }}/api/users",
+                          "headers":  [
+                                          {
+                                              "name":  "Content-Type",
+                                              "value":  "application/json"
+                                          }
+                                      ],
+                          "body":  {
+                                       "mimeType":  "application/json",
+                                       "text":  "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"your-password\",\n  \"city\": \"Stockholm\"\n}"
+                                   },
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Create user status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([201, 400]);\n});"
+                      },
+                      {
+                          "_id":  "req_get_users",
+                          "_type":  "request",
+                          "parentId":  "fld_users",
+                          "name":  "GET /api/users (Auth)",
+                          "method":  "GET",
+                          "url":  "{{ _.base_url }}/api/users",
+                          "headers":  [
+                                          {
+                                              "name":  "Authorization",
+                                              "value":  "Bearer {{ _.token }}"
+                                          }
+                                      ],
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Get users status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([200, 401]);\n});\n\nif (status === 200) {\n  const body = insomnia.response.json();\n  insomnia.test(\"Get users returns array\", () =\u003e {\n    insomnia.expect(body).to.be.an(\"array\");\n  });\n}"
+                      },
+                      {
+                          "_id":  "req_get_user_by_id",
+                          "_type":  "request",
+                          "parentId":  "fld_users",
+                          "name":  "GET /api/users/:user_id",
+                          "method":  "GET",
+                          "url":  "{{ _.base_url }}/api/users/{{ _.user_id }}",
+                          "afterResponseScript":  "const status = insomnia.response.code;\ninsomnia.test(\"Get user by id status is valid\", () =\u003e {\n  insomnia.expect(status).to.be.oneOf([200, 404]);\n});\n\nif (status === 200) {\n  const body = insomnia.response.json();\n  insomnia.test(\"Get user has id\", () =\u003e {\n    insomnia.expect(body).to.have.property(\"id\");\n  });\n}"
+                      }
+                  ]
+}
+
