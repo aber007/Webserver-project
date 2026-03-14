@@ -5,18 +5,22 @@ block content %}
     <div class="profile-hero-content">
       <div class="profile-identity">
         <div class="profile-avatar">
-          {{ user.firstName[0] if user and user.firstName else "T" }}
+          {{ user.first_name[0] if user and user.first_name else "T" }}
         </div>
         <div class="profile-name-block">
           <p class="profile-label">Your profile</p>
           <h1>
-            {% if user %} {{ user.firstName }} {{ user.lastName }} {% else %}
+            {% if user %} {{ user.first_name }} {{ user.last_name }} {% else %}
             Tradee Member {% endif %}
           </h1>
         </div>
       </div>
       <div class="profile-hero-actions">
-        <button class="profile-btn secondary" type="button">
+        <button
+          class="profile-btn secondary"
+          type="button"
+          id="edit-profile-btn"
+        >
           Edit profile
         </button>
         <a class="profile-btn primary" href="/auctions/create">New listing</a>
@@ -35,8 +39,8 @@ block content %}
           <div>
             <p class="profile-info-label">Full name</p>
             <p class="profile-info-value">
-              {% if user %} {{ user.firstName }} {{ user.lastName }} {% else %}
-              Tradee Member {% endif %}
+              {% if user %} {{ user.first_name }} {{ user.last_name }} {% else
+              %} Tradee Member {% endif %}
             </p>
           </div>
           <div>
@@ -53,22 +57,14 @@ block content %}
           </div>
           <div>
             <p class="profile-info-label">Member since</p>
-            <p class="profile-info-value">{{ user.accountCreated if user else "Not specified" }}</p>
-          </div>
-        </div>
-        <div class="profile-stats">
-          <div>
-            <p class="profile-stat-value">4</p>
-            <p class="profile-stat-label">Active listings</p>
-          </div>
-          <div>
-            <p class="profile-stat-value">12</p>
-            <p class="profile-stat-label">Bids placed</p>
+            <p class="profile-info-value">
+              {{ user.account_created if user else "Not specified" }}
+            </p>
           </div>
         </div>
       </div>
 
-      <div class="profile-card">
+      <div class="profile-card unfinished">
         <div class="profile-card-header">
           <h2>Recent activity</h2>
           <button class="profile-link" type="button">View all</button>
@@ -106,37 +102,34 @@ block content %}
         <h2>Your listings</h2>
         <button class="profile-link" type="button">Manage listings</button>
       </div>
-      <div class="profile-listings-grid">
-        <div class="profile-listing-card">
-          <div class="profile-listing-image"></div>
-          <div class="profile-listing-body">
-            <p class="profile-listing-title">Teak dining table</p>
-            <p class="profile-listing-meta">Ends in 2d · 6 bids</p>
-            <p class="profile-listing-price">SEK 1,450</p>
-          </div>
+      <div class="profile-listings-grid" id="profile-listings-grid">
+        {% for i in range(4) %}
+        <div class="auction-preview-card auction-preview-card--small">
+          <div class="auction-preview-image auction-preview-placeholder"></div>
         </div>
-        <div class="profile-listing-card">
-          <div class="profile-listing-image"></div>
-          <div class="profile-listing-body">
-            <p class="profile-listing-title">Vintage stereo deck</p>
-            <p class="profile-listing-meta">Ends in 5d · 2 bids</p>
-            <p class="profile-listing-price">SEK 680</p>
-          </div>
-        </div>
-        <div class="profile-listing-card">
-          <div class="profile-listing-image"></div>
-          <div class="profile-listing-body">
-            <p class="profile-listing-title">Handwoven rug</p>
-            <p class="profile-listing-meta">Draft · Not published</p>
-            <p class="profile-listing-price">SEK 520</p>
-          </div>
-        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
 </section>
+<script src="{{ url_for('static', filename='add_auctions.js') }}"></script>
 <script>
-  // Log the user data for debugging
-  console.log("User data:", {{ user | tojson }});
+  let auctions_offset = 0;
+  let auctions_grid = document.querySelector(".profile-listings-grid");
+  addEventListener("DOMContentLoaded", async () => {
+    await add_auctions(
+      "published_at",
+      auctions_offset,
+      4,
+      "",
+      "profile-listings-grid",
+      {
+        cardSelector: ".auction-preview-card",
+        owner_id: {{ (user.id if user else None)|tojson }},
+      },
+    );
+    let count = 0;
+  });
+  auctions_grid.innerHTML = ""; // Clear placeholders
 </script>
 {% endblock %}

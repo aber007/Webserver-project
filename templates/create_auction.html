@@ -1,459 +1,417 @@
 {% extends "base.html" %} {% block title %}Create Auction - Tradee{% endblock %}
 {% block content %}
 <section class="create-auction-page">
-    <div class="create-auction-hero">
-        <div class="create-auction-hero-inner">
-            <div class="create-auction-hero-copy">
-                <p class="create-auction-eyebrow">Create auction</p>
-                <h1>List an item</h1>
-                <p class="create-auction-subtitle">
-                    Add a title, price, photos, and auction length.
-                </p>
-            </div>
-        </div>
+  <div class="create-auction-hero">
+    <div class="create-auction-hero-inner">
+      <div class="create-auction-hero-copy">
+        <p class="create-auction-eyebrow">Create auction</p>
+        <h1>List an item</h1>
+        <p class="create-auction-subtitle">
+          Add a title, price, photos, and auction length.
+        </p>
+      </div>
     </div>
+  </div>
 
-    <div class="create-auction-body">
-        <div class="create-auction-layout">
-            <div class="create-auction-form-card">
-                <form
-                    class="create-auction-form"
-                    method="post"
-                    id="item_form"
-                    action="/profile"
-                    enctype="multipart/form-data"
+  <div class="create-auction-body">
+    <div class="create-auction-layout">
+      <div class="create-auction-form-card">
+        <form
+          class="create-auction-form"
+          method="post"
+          id="item_form"
+          action="/profile"
+          enctype="multipart/form-data"
+        >
+          <div class="create-auction-section">
+            <div class="create-auction-section-header">
+              <h2>Item info</h2>
+            </div>
+            <div class="create-auction-grid two-col">
+              <div class="create-auction-field">
+                <label class="create-auction-label" for="name"
+                  >Item title</label
                 >
-                    <div class="create-auction-section">
-                        <div class="create-auction-section-header">
-                            <h2>Item info</h2>
-                        </div>
-                        <div class="create-auction-grid two-col">
-                            <div class="create-auction-field">
-                                <label class="create-auction-label" for="name"
-                                    >Item title</label
-                                >
-                                <input
-                                    class="create-auction-input"
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    placeholder=""
-                                    required
-                                />
-                            </div>
-                            <div class="create-auction-field">
-                                <label
-                                    class="create-auction-label"
-                                    for="category"
-                                    >Category</label
-                                >
-                                <select
-                                    class="create-auction-select"
-                                    id="category"
-                                    name="category"
-                                    required
-                                >
-                                    <option value="">Select a category</option>
-                                    <option value="1">Toys</option>
-                                    <option value="2">Antiques</option>
-                                    <option value="3">Vehicles</option>
-                                </select>
-                            </div>
-                            <div class="create-auction-field">
-                                <label
-                                    class="create-auction-label"
-                                    for="condition"
-                                    >Condition</label
-                                >
-                                <select
-                                    class="create-auction-select"
-                                    id="condition"
-                                    name="condition"
-                                    required
-                                >
-                                    <option value="">Select condition</option>
-                                    <option value="new">New</option>
-                                    <option value="like-new">Like new</option>
-                                    <option value="good">Good</option>
-                                    <option value="fair">Fair</option>
-                                </select>
-                            </div>
-                            <div class="create-auction-field">
-                                <label
-                                    class="create-auction-label"
-                                    for="location"
-                                    >Pickup city</label
-                                >
-                                <input
-                                    class="create-auction-input"
-                                    id="location"
-                                    name="location"
-                                    type="text"
-                                    value="{{user.city}}"
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="create-auction-section">
-                        <div class="create-auction-section-header">
-                            <h2>Pricing and timing</h2>
-                            <p>
-                                Choose how long the auction runs and the
-                                starting price.
-                            </p>
-                        </div>
-                        <div class="create-auction-grid two-col">
-                            <div class="create-auction-field">
-                                <label class="create-auction-label" for="price"
-                                    >Starting price</label
-                                >
-                                <div class="create-auction-input-group">
-                                    <span class="create-auction-addon"
-                                        >SEK</span
-                                    >
-                                    <input
-                                        class="create-auction-input"
-                                        id="price"
-                                        name="price"
-                                        type="number"
-                                        placeholder="250"
-                                        min="0"
-                                        max="9999999"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div class="create-auction-field">
-                                <label
-                                    class="create-auction-label"
-                                    for="auction_time"
-                                    >Auction length</label
-                                >
-                                <select
-                                    class="create-auction-select"
-                                    id="auction_time"
-                                    name="auction_time"
-                                    required
-                                >
-                                    <option value="">Select duration</option>
-                                    <option value="24">24 hours</option>
-                                    <option value="72">3 days</option>
-                                    <option value="168">7 days</option>
-                                    <option value="240">10 days</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="create-auction-section">
-                        <div class="create-auction-section-header">
-                            <h2>Description</h2>
-                            <p>Share details buyers will ask about.</p>
-                        </div>
-                        <div class="create-auction-field">
-                            <label
-                                class="create-auction-label"
-                                for="description"
-                                >Item description</label
-                            >
-                            <textarea
-                                class="create-auction-textarea"
-                                id="description"
-                                name="description"
-                                placeholder="Condition, measurements, pickup details, and anything else a buyer should know."
-                                rows="6"
-                                required
-                            ></textarea>
-                        </div>
-                    </div>
-
-                    <div class="create-auction-section">
-                        <div class="create-auction-section-header">
-                            <h2>Photos</h2>
-                            <p>Add 1 photo to boost confidence.</p>
-                        </div>
-                        <div class="create-auction-media">
-                            <label
-                                class="create-auction-dropzone"
-                                for="image_large"
-                            >
-                                <span class="create-auction-dropzone-title"
-                                    >Drag and drop image here</span
-                                >
-                                <span class="create-auction-dropzone-subtitle"
-                                    >JPG or PNG. 10MB max</span
-                                >
-                                <span class="create-auction-dropzone-cta"
-                                    >Choose file</span
-                                >
-                            </label>
-                            <input
-                                class="create-auction-file-input"
-                                id="image_large"
-                                name="image_large"
-                                type="file"
-                                accept="image/*"
-                                required
-                            />
-                            <div
-                                class="create-auction-upload-preview"
-                                aria-live="polite"
-                            >
-                                <img
-                                    class="create-auction-upload-image"
-                                    src=""
-                                    alt=""
-                                />
-                                <span class="create-auction-upload-name"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="create-auction-actions">
-                        <button
-                            id="submit_private"
-                            class="create-auction-btn ghost"
-                            type="button"
-                        >
-                            Save draft
-                        </button>
-                        <button
-                            id="submit_public"
-                            class="create-auction-btn primary"
-                            type="submit"
-                        >
-                            Publish auction
-                        </button>
-                    </div>
-                </form>
+                <input
+                  class="create-auction-input"
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder=""
+                  required
+                />
+              </div>
+              <div class="create-auction-field">
+                <label class="create-auction-label" for="category"
+                  >Category</label
+                >
+                <select
+                  class="create-auction-select"
+                  id="category"
+                  name="category"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  <option value="1">Toys</option>
+                  <option value="2">Antiques</option>
+                  <option value="3">Vehicles</option>
+                </select>
+              </div>
+              <div class="create-auction-field">
+                <label class="create-auction-label" for="condition"
+                  >Condition</label
+                >
+                <select
+                  class="create-auction-select"
+                  id="condition"
+                  name="condition"
+                  required
+                >
+                  <option value="">Select condition</option>
+                  <option value="new">New</option>
+                  <option value="like-new">Like new</option>
+                  <option value="good">Good</option>
+                  <option value="fair">Fair</option>
+                </select>
+              </div>
+              <div class="create-auction-field">
+                <label class="create-auction-label" for="location"
+                  >Pickup city</label
+                >
+                <input
+                  class="create-auction-input"
+                  id="location"
+                  name="location"
+                  type="text"
+                  value="{{user.city}}"
+                  required
+                />
+              </div>
             </div>
+          </div>
 
-            <aside class="create-auction-preview">
-                <div class="create-auction-preview-card">
-                    <div class="create-auction-preview-image"></div>
-                    <div class="create-auction-preview-body">
-                        <div class="create-auction-preview-price">SEK 250</div>
-                        <h3 id="create-auction-preview-name">Item Title</h3>
-                        <p id="create-auction-preview-description">
-                            Item description
-                        </p>
-                        <div class="create-auction-preview-tags">
-                            <span id="create-auction-preview-condition"></span>
-                            <span id="create-auction-preview-location"
-                                >{{user.city}}</span
-                            >
-                            <span id="create-auction-preview-category"></span>
-                        </div>
-                        <div class="create-auction-preview-footer">
-                            <span>0 bids</span>
-                            <span class="create-auction-preview-timer"
-                                >Ends in 6d 4h</span
-                            >
-                        </div>
-                    </div>
+          <div class="create-auction-section">
+            <div class="create-auction-section-header">
+              <h2>Pricing and timing</h2>
+              <p>Choose how long the auction runs and the starting price.</p>
+            </div>
+            <div class="create-auction-grid two-col">
+              <div class="create-auction-field">
+                <label class="create-auction-label" for="price"
+                  >Starting price</label
+                >
+                <div class="create-auction-input-group">
+                  <span class="create-auction-addon">SEK</span>
+                  <input
+                    class="create-auction-input"
+                    id="price"
+                    name="price"
+                    type="number"
+                    placeholder="250"
+                    min="0"
+                    max="9999999"
+                    required
+                  />
                 </div>
-            </aside>
+              </div>
+              <div class="create-auction-field">
+                <label class="create-auction-label" for="auction_time"
+                  >Auction length</label
+                >
+                <select
+                  class="create-auction-select"
+                  id="auction_time"
+                  name="auction_time"
+                  required
+                >
+                  <option value="">Select duration</option>
+                  <option value="24">24 hours</option>
+                  <option value="72">3 days</option>
+                  <option value="168">7 days</option>
+                  <option value="240">10 days</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="create-auction-section">
+            <div class="create-auction-section-header">
+              <h2>Description</h2>
+              <p>Share details buyers will ask about.</p>
+            </div>
+            <div class="create-auction-field">
+              <label class="create-auction-label" for="description"
+                >Item description</label
+              >
+              <textarea
+                class="create-auction-textarea"
+                id="description"
+                name="description"
+                placeholder="Condition, measurements, pickup details, and anything else a buyer should know."
+                rows="6"
+                required
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="create-auction-section">
+            <div class="create-auction-section-header">
+              <h2>Photos</h2>
+              <p>Add 1 photo to boost confidence.</p>
+            </div>
+            <div class="create-auction-media">
+              <label class="create-auction-dropzone" for="image_large">
+                <span class="create-auction-dropzone-title"
+                  >Drag and drop image here</span
+                >
+                <span class="create-auction-dropzone-subtitle"
+                  >JPG or PNG. 10MB max</span
+                >
+                <span class="create-auction-dropzone-cta">Choose file</span>
+              </label>
+              <input
+                class="create-auction-file-input"
+                id="image_large"
+                name="image_large"
+                type="file"
+                accept="image/*"
+                required
+              />
+              <div class="create-auction-upload-preview" aria-live="polite">
+                <img class="create-auction-upload-image" src="" alt="" />
+                <span class="create-auction-upload-name"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="create-auction-actions">
+            <button
+              id="submit_private"
+              class="create-auction-btn ghost"
+              type="button"
+            >
+              Save draft
+            </button>
+            <button
+              id="submit_public"
+              class="create-auction-btn primary"
+              type="submit"
+            >
+              Publish auction
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <aside class="create-auction-preview">
+        <div class="create-auction-preview-card">
+          <div class="create-auction-preview-image"></div>
+          <div class="create-auction-preview-body">
+            <div class="create-auction-preview-price">SEK 250</div>
+            <h3 id="create-auction-preview-name">Item Title</h3>
+            <p id="create-auction-preview-description">Item description</p>
+            <div class="create-auction-preview-tags">
+              <span id="create-auction-preview-condition"></span>
+              <span id="create-auction-preview-location">{{user.city}}</span>
+              <span id="create-auction-preview-category"></span>
+            </div>
+            <div class="create-auction-preview-footer">
+              <span>0 bids</span>
+              <span class="create-auction-preview-timer">Ends in 6d 4h</span>
+            </div>
+          </div>
         </div>
+      </aside>
     </div>
+  </div>
 </section>
 <script>
-    const imageLargeInput = document.getElementById("image_large");
-    if (imageLargeInput) {
-        const dropzone = document.querySelector(".create-auction-dropzone");
-        const preview = document.querySelector(
-            ".create-auction-upload-preview",
-        );
-        const previewImage = preview?.querySelector(
-            ".create-auction-upload-image",
-        );
-        const previewName = preview?.querySelector(
-            ".create-auction-upload-name",
-        );
-        let previewUrl = null;
+  const imageLargeInput = document.getElementById("image_large");
+  if (imageLargeInput) {
+    const dropzone = document.querySelector(".create-auction-dropzone");
+    const preview = document.querySelector(".create-auction-upload-preview");
+    const previewImage = preview?.querySelector(".create-auction-upload-image");
+    const previewName = preview?.querySelector(".create-auction-upload-name");
+    let previewUrl = null;
 
-        imageLargeInput.addEventListener("change", () => {
-            const file = imageLargeInput.files && imageLargeInput.files[0];
-            if (!file) {
-                if (previewUrl) {
-                    URL.revokeObjectURL(previewUrl);
-                    previewUrl = null;
-                }
-                if (previewImage) {
-                    previewImage.src = "";
-                    previewImage.alt = "";
-                }
-                if (previewName) {
-                    previewName.textContent = "";
-                }
-                preview?.classList.remove("is-visible");
-                dropzone?.classList.remove("has-file");
-                return;
-            }
+    imageLargeInput.addEventListener("change", () => {
+      const file = imageLargeInput.files && imageLargeInput.files[0];
+      if (!file) {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          previewUrl = null;
+        }
+        if (previewImage) {
+          previewImage.src = "";
+          previewImage.alt = "";
+        }
+        if (previewName) {
+          previewName.textContent = "";
+        }
+        preview?.classList.remove("is-visible");
+        dropzone?.classList.remove("has-file");
+        return;
+      }
 
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
-            previewUrl = URL.createObjectURL(file);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      previewUrl = URL.createObjectURL(file);
 
-            if (previewImage) {
-                previewImage.src = previewUrl;
-                previewImage.alt = file.name;
-            }
-            if (previewName) {
-                previewName.textContent = file.name;
-            }
-            preview?.classList.add("is-visible");
-            dropzone?.classList.add("has-file");
-        });
-    }
+      if (previewImage) {
+        previewImage.src = previewUrl;
+        previewImage.alt = file.name;
+      }
+      if (previewName) {
+        previewName.textContent = file.name;
+      }
+      preview?.classList.add("is-visible");
+      dropzone?.classList.add("has-file");
+    });
+  }
 </script>
 <script>
-    let titleInput = document.getElementById("name");
-    let priceInput = document.getElementById("price");
-    let descriptionInput = document.getElementById("description");
-    let conditionInput = document.getElementById("condition");
-    let locationInput = document.getElementById("location");
-    let auctionDurationInput = document.getElementById("auction_time");
-    let categoryInput = document.getElementById("category");
-    let imageInput = document.getElementById("image_large");
+  let titleInput = document.getElementById("name");
+  let priceInput = document.getElementById("price");
+  let descriptionInput = document.getElementById("description");
+  let conditionInput = document.getElementById("condition");
+  let locationInput = document.getElementById("location");
+  let auctionDurationInput = document.getElementById("auction_time");
+  let categoryInput = document.getElementById("category");
+  let imageInput = document.getElementById("image_large");
 
-    let previewName = document.getElementById("create-auction-preview-name");
-    let previewPrice = document.querySelector(".create-auction-preview-price");
-    let previewDescription = document.getElementById(
-        "create-auction-preview-description",
-    );
-    let previewCondition = document.getElementById(
-        "create-auction-preview-condition",
-    );
-    let previewLocation = document.getElementById(
-        "create-auction-preview-location",
-    );
-    let previewTimer = document.querySelector(".create-auction-preview-timer");
-    let previewCategory = document.getElementById(
-        "create-auction-preview-category",
-    );
-    let previewImage = document.querySelector(".create-auction-preview-image");
+  let previewName = document.getElementById("create-auction-preview-name");
+  let previewPrice = document.querySelector(".create-auction-preview-price");
+  let previewDescription = document.getElementById(
+    "create-auction-preview-description",
+  );
+  let previewCondition = document.getElementById(
+    "create-auction-preview-condition",
+  );
+  let previewLocation = document.getElementById(
+    "create-auction-preview-location",
+  );
+  let previewTimer = document.querySelector(".create-auction-preview-timer");
+  let previewCategory = document.getElementById(
+    "create-auction-preview-category",
+  );
+  let previewImage = document.querySelector(".create-auction-preview-image");
 
-    const updatePreview = () => {
-        if (titleInput && previewName) {
-            previewName.textContent = titleInput.value || "Item Title";
-        }
-        if (priceInput && previewPrice) {
-            previewPrice.textContent = priceInput.value
-                ? `SEK ${priceInput.value}`
-                : "SEK 0";
-        }
-        if (descriptionInput && previewDescription) {
-            previewDescription.textContent =
-                descriptionInput.value || "Item description will appear here.";
-        }
-        if (conditionInput && previewCondition) {
-            const conditionText =
-                conditionInput.options[conditionInput.selectedIndex]?.text ||
-                "";
-            previewCondition.textContent =
-                conditionText && !conditionText.includes("Select")
-                    ? conditionText + " condition"
-                    : "";
-        }
-        if (locationInput && previewLocation) {
-            previewLocation.textContent = locationInput.value || "";
-        }
-        if (auctionDurationInput && previewTimer) {
-            const durationText =
-                auctionDurationInput.options[auctionDurationInput.selectedIndex]
-                    ?.text || "";
-            previewTimer.textContent =
-                durationText && !durationText.includes("Select")
-                    ? `Ends in ${durationText}`
-                    : "Ends in --";
-        }
-        if (categoryInput && previewCategory) {
-            const categoryText =
-                categoryInput.options[categoryInput.selectedIndex]?.text || "";
-            previewCategory.textContent =
-                categoryText && !categoryText.includes("Select")
-                    ? categoryText
-                    : "";
-        }
-        if (imageInput && previewImage) {
-            const file = imageInput.files && imageInput.files[0];
-            if (file) {
-                const imageUrl = URL.createObjectURL(file);
-                previewImage.style.backgroundImage = `url(${imageUrl})`;
-            } else {
-                previewImage.style.backgroundImage = "";
-            }
-        }
-    };
-    addEventListener("input", updatePreview);
-    addEventListener("change", updatePreview);
-    updatePreview();
+  const updatePreview = () => {
+    if (titleInput && previewName) {
+      previewName.textContent = titleInput.value || "Item Title";
+    }
+    if (priceInput && previewPrice) {
+      previewPrice.textContent = priceInput.value
+        ? `SEK ${priceInput.value}`
+        : "SEK 0";
+    }
+    if (descriptionInput && previewDescription) {
+      previewDescription.textContent =
+        descriptionInput.value || "Item description will appear here.";
+    }
+    if (conditionInput && previewCondition) {
+      const conditionText =
+        conditionInput.options[conditionInput.selectedIndex]?.text || "";
+      previewCondition.textContent =
+        conditionText && !conditionText.includes("Select")
+          ? conditionText + " condition"
+          : "";
+    }
+    if (locationInput && previewLocation) {
+      previewLocation.textContent = locationInput.value || "";
+    }
+    if (auctionDurationInput && previewTimer) {
+      const durationText =
+        auctionDurationInput.options[auctionDurationInput.selectedIndex]
+          ?.text || "";
+      previewTimer.textContent =
+        durationText && !durationText.includes("Select")
+          ? `Ends in ${durationText}`
+          : "Ends in --";
+    }
+    if (categoryInput && previewCategory) {
+      const categoryText =
+        categoryInput.options[categoryInput.selectedIndex]?.text || "";
+      previewCategory.textContent =
+        categoryText && !categoryText.includes("Select") ? categoryText : "";
+    }
+    if (imageInput && previewImage) {
+      const file = imageInput.files && imageInput.files[0];
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        previewImage.style.backgroundImage = `url(${imageUrl})`;
+      } else {
+        previewImage.style.backgroundImage = "";
+      }
+    }
+  };
+  addEventListener("input", updatePreview);
+  addEventListener("change", updatePreview);
+  updatePreview();
 </script>
 <script>
-    const submit_public = document.getElementById("submit_public");
-    const submit_private = document.getElementById("submit_private");
-    const getErrorMessage = async (response) => {
-        let errorDetails = "";
-        try {
-            const contentType = response.headers.get("content-type") || "";
-            if (contentType.includes("application/json")) {
-                const body = await response.json();
-                errorDetails = body?.error || body?.message || "";
-            } else {
-                errorDetails = (await response.text()).trim();
-            }
-        } catch (error) {
-            errorDetails = "";
-        }
-
-        return `Error creating auction (${response.status}): ${errorDetails || response.statusText || "Unknown error"}`;
-    };
-
-    if (submit_public && submit_private) {
-        submit_public.addEventListener("click", async (event) => {
-            event.preventDefault();
-            const form = document.getElementById("item_form");
-            if (form) {
-                const url = "/api/auctions/create";
-                const formData = new FormData(form);
-                formData.set("published", "true");
-                const response = await fetch(url, {
-                    method: "POST",
-                    body: formData,
-                });
-                if (response.ok) {
-                    window.location.href = "/auctions/" + (await response.json()).auction_id;
-                } else {
-                    const errorMessage = await getErrorMessage(response);
-                    console.error(errorMessage);
-                    alert(errorMessage);
-                }
-            }
-        });
-        submit_private.addEventListener("click", async (event) => {
-            event.preventDefault();
-            const form = document.getElementById("item_form");
-            if (form) {
-                const url = "/api/auctions/create";
-                const formData = new FormData(form);
-                console.log("Submitting form", formData);
-                formData.set("published", "false");
-                const response = await fetch(url, {
-                    method: "POST",
-                    body: formData,
-                });
-                if (response.ok) {
-                    window.location.href = "/auctions/" + (await response.json()).auction_id;
-                } else {
-                    const errorMessage = await getErrorMessage(response);
-                    console.error(errorMessage);
-                    alert(errorMessage);
-                }
-            }
-        });
+  const submit_public = document.getElementById("submit_public");
+  const submit_private = document.getElementById("submit_private");
+  const getErrorMessage = async (response) => {
+    let errorDetails = "";
+    try {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const body = await response.json();
+        errorDetails = body?.error || body?.message || "";
+      } else {
+        errorDetails = (await response.text()).trim();
+      }
+    } catch (error) {
+      errorDetails = "";
     }
+
+    return `Error creating auction (${response.status}): ${errorDetails || response.statusText || "Unknown error"}`;
+  };
+
+  if (submit_public && submit_private) {
+    submit_public.addEventListener("click", async (event) => {
+      event.preventDefault();
+      const form = document.getElementById("item_form");
+      if (form) {
+        const url = "/api/auctions";
+        const formData = new FormData(form);
+        formData.set("published", "true");
+        const response = await fetch(url, {
+          method: "POST",
+          body: formData,
+        });
+        if (response.ok) {
+          window.location.href = "/auctions/" + (await response.json()).id;
+        } else {
+          const errorMessage = await getErrorMessage(response);
+          console.error(errorMessage);
+          alert(errorMessage);
+        }
+      }
+    });
+    submit_private.addEventListener("click", async (event) => {
+      event.preventDefault();
+      const form = document.getElementById("item_form");
+      if (form) {
+        const url = "/api/auctions";
+        const formData = new FormData(form);
+        console.log("Submitting form", formData);
+        formData.set("published", "false");
+        const response = await fetch(url, {
+          method: "POST",
+          body: formData,
+        });
+        if (response.ok) {
+          window.location.href = "/auctions/" + (await response.json()).id;
+        } else {
+          const errorMessage = await getErrorMessage(response);
+          console.error(errorMessage);
+          alert(errorMessage);
+        }
+      }
+    });
+  }
 </script>
 {% endblock %}

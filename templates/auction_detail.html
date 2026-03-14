@@ -36,12 +36,17 @@
           <h3>Seller Information</h3>
           <p id="seller_name">Seller: <strong></strong></p>
           <p id="seller_location"></p>
-          <p id="seller_member_since">Member since: </p>
+          <p id="seller_member_since">Member since:</p>
         </div>
 
         <div class="auction-actions">
           <div class="bid-section">
-            <input id="bid-input" type="number" placeholder="Enter your bid" min="130" />
+            <input
+              id="bid-input"
+              type="number"
+              placeholder="Enter your bid"
+              min="130"
+            />
             <button class="btn-bid">Place Bid</button>
           </div>
           <button class="btn-watchlist unfinished">Add to Watchlist</button>
@@ -79,13 +84,16 @@
         return;
       }
       try {
-        const response = await fetch(`${window.location.origin}/api/auctions/${auctionId}/bid`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${window.location.origin}/api/auctions/${auctionId}/bid`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ amount: bidValue }),
           },
-          body: JSON.stringify({ amount: bidValue }),
-        });
+        );
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to place bid");
@@ -94,7 +102,6 @@
         console.error("Error placing bid:", error);
         alert(`Error placing bid: ${error.message}`);
       }
-
     });
   </script>
   <script>
@@ -174,11 +181,11 @@
 
         numberOfBidsElem.textContent = `Number of Bids: ${auction.bid_count}`;
         descriptionTextElem.textContent = auction.description;
-        sellerNameElem.innerHTML = `Seller: <strong>${auction.seller.firstName} ${auction.seller.lastName}</strong>`;
+        sellerNameElem.innerHTML = `Seller: <strong>${auction.seller.first_name} ${auction.seller.last_name}</strong>`;
         sellerLocationElem.textContent = `Location: ${auction.seller.city}`;
-        if (auction.seller.accountCreated) {
+        if (auction.seller.account_created) {
           sellerMemberSinceElem.textContent = `Member since: ${new Date(
-            auction.seller.accountCreated,
+            auction.seller.account_created,
           ).getFullYear()}`;
         } else {
           sellerMemberSinceElem.textContent = `Member since: N/A`;

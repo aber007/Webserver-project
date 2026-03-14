@@ -136,11 +136,12 @@ INSERT INTO `categories` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `users` (
-  `ID` int(11) NOT NULL,
-  `lastName` varchar(128) NOT NULL,
-  `firstName` varchar(128) NOT NULL,
+  `id` int(11) NOT NULL,
+  `last_name` varchar(128) NOT NULL,
+  `first_name` varchar(128) NOT NULL,
   `city` varchar(128) NOT NULL,
   `email` varchar(128) NOT NULL,
+  `account_created` date DEFAULT NULL,
   `password` varchar(256) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -148,8 +149,8 @@ CREATE TABLE `users` (
 -- Dumpning av Data i tabell `users`
 --
 
-INSERT INTO `users` (`ID`, `lastName`, `firstName`, `city`, `email`, `password`) VALUES
-(1, 'Bergström', 'Anton', 'Stockholm', 'admin@tradee.com', '$2b$12$d3mk1tf01IztwDh6nU3SM.DPQx0HygabgPr82KNd1Ql0pDsJO.r1y');
+INSERT INTO `users` (`id`, `last_name`, `first_name`, `city`, `email`, `account_created`, `password`) VALUES
+(1, 'Bergström', 'Anton', 'Stockholm', 'admin@tradee.com', NULL, '$2b$12$d3mk1tf01IztwDh6nU3SM.DPQx0HygabgPr82KNd1Ql0pDsJO.r1y');
 
 --
 -- Index för dumpade tabeller
@@ -171,7 +172,7 @@ ALTER TABLE `categories`
 -- Index för tabell `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`ID`),
+  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
@@ -194,7 +195,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT för tabell `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

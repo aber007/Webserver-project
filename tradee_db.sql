@@ -162,12 +162,12 @@ INSERT INTO `categories` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `users` (
-  `ID` int(11) NOT NULL,
-  `lastName` varchar(128) NOT NULL,
-  `firstName` varchar(128) NOT NULL,
+  `id` int(11) NOT NULL,
+  `last_name` varchar(128) NOT NULL,
+  `first_name` varchar(128) NOT NULL,
   `city` varchar(128) NOT NULL,
   `email` varchar(128) NOT NULL,
-  `accountCreated` date DEFAULT NULL,
+  `account_created` date DEFAULT NULL,
   `password` varchar(256) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -175,7 +175,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`ID`, `lastName`, `firstName`, `city`, `email`, `accountCreated`, `password`) VALUES
+INSERT INTO `users` (`id`, `last_name`, `first_name`, `city`, `email`, `account_created`, `password`) VALUES
 (1, 'Bergström', 'Anton', 'Stockholm', 'admin@tradee.com', NULL, '$2b$12$4Y8eGKAWE6vSAPvckbOnGud8dal2D0.a.szGtqZJnFW.BwKuidHtC'),
 (11, 'Albert', 'Eskil', 'Stockholm', 'Eskildmail@mail.com', NULL, '$2b$12$DjWk/I9HqU9dWtL7mLGMQeO1/1oFd7qCQor13i5uUT6We8cW7zUyq'),
 (17, 'Doe', 'Man', 'Florida', 'email@email.email', '2026-03-05', '$2b$12$aeu0fwyc7dm1OlGHkjpkTe3c6/EkwIIvOrPXoDFE.oyYX6.G50cQC');
@@ -188,7 +188,7 @@ INSERT INTO `users` (`ID`, `lastName`, `firstName`, `city`, `email`, `accountCre
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`ID`),
+  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
@@ -199,7 +199,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

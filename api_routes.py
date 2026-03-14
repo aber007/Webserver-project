@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, g
 from werkzeug.utils import secure_filename
 from functools import wraps
 import jwt
@@ -48,6 +48,7 @@ def token_required(f):
         except jwt.InvalidTokenError:
             return jsonify({"error": "Invalid token"}), 401
         
+        g.user_id = user_id
         return f(*args, **kwargs)
     return decorated_function
 
@@ -57,10 +58,18 @@ def check_email_format(email):
     return re.match(email_regex, email) is not None
 
 parameter_types = {
-    "lastName": str,
-    "firstName": str,
+  "last_name": str,
+  "first_name": str,
     "city": str,
     "email": "email",
+  "name": str,
+  "description": str,
+  "category": int,
+  "price": (int, float),
+  "auction_time": int,
+  "location": str,
+  "condition": str,
+  "published": bool,
 }
 
 def check_valid_json(data, required_fields):
@@ -152,6 +161,7 @@ def api_search():
     count = request.args.get('count', 6, type=int)
     offset = request.args.get('offset', 0, type=int)
     sort = request.args.get('sort', "published_at", type=str)
+    owner_id = request.args.get('owner_id', None, type=int)
     count_temp = None
 
     if query:
@@ -161,9 +171,9 @@ def api_search():
         offset = 0
 
     if category:
-        auctions_items = auctions.get_auctions_by_category(category, count, offset, sort)
+      auctions_items = auctions.get_auctions_by_category(category, count, offset, sort, owner_id=owner_id)
     else:
-        auctions_items = auctions.get_all_auctions(count, offset, sort)
+      auctions_items = auctions.get_all_auctions(count, offset, sort, owner_id=owner_id)
 
     if query:
       # This is shit but it looks alright
@@ -308,35 +318,54 @@ def remove_published_auctions():
         return jsonify({"message": "Auction published status updated to False"}), 200
     else:
         return jsonify({"error": "Auction is still active"}), 400
+    
+def check_auction_form_types(data):
+    for field, expected_type in parameter_types.items():
+        if field in data:
+            value = data[field]
+            if expected_type == "email":
+                if not check_email_format(value):
+                    print(f"Invalid email format for field '{field}': {value}")
+                    return False
+            elif expected_type == int:
+                try:
+                    int(value)
+                except (TypeError, ValueError):
+                    print(f"Invalid integer format for field '{field}': {value}")
+                    return False
+            elif expected_type == (int, float):
+                try:
+                    float(value)
+                except (TypeError, ValueError):
+                    print(f"Invalid number format for field '{field}': {value}")
+                    return False
+            elif expected_type == bool:
+                if str(value).lower() not in ('true', 'false', '1', '0'):
+                    print(f"Invalid boolean format for field '{field}': {value}")
+                    return False
+            elif not isinstance(value, expected_type):
+                print(f"Invalid type for field '{field}': expected {expected_type}, got {type(value)}")
+                return False
+    return True
 
-@api_bp.route('/auctions/create', methods=['POST'])
+@api_bp.route('/auctions', methods=['POST'])
 @token_required
 def api_create_auction():
     """
-    Create a new auction (Not yet implemented)
+    Create a new auction
     ---
     responses:
       400:
         description: Invalid request format
       401:
         description: Authentication token missing or invalid
-      201:
+      200:
         description: Auction created successfully
     """
-    # Accept both JSON and multipart/form-data (used by the create_auction.html form).
-    data = request.get_json(silent=True)
+    # Accept multipart/form-data (used by the create_auction.html form).
     is_multipart = request.content_type and 'multipart/form-data' in request.content_type
 
-    auth_header = request.headers.get('Authorization')
-    if auth_header and auth_header.startswith('Bearer '):
-        token = auth_header.split(' ')[1]
-    elif request.cookies.get('jwt_token'):
-        token = request.cookies.get('jwt_token')
-    else:
-        # Fallback to JSON body for backwards compatibility
-        data = request.get_json(silent=True) or {}
-        token = data.get('authentication')
-    seller_id = jwt.decode(token, current_app.secret_key, algorithms=["HS256"])['user_id']
+    seller_id = g.user_id
 
     if is_multipart:
       form = request.form
@@ -344,27 +373,34 @@ def api_create_auction():
       static = current_app.static_folder
       upload_folder = os.path.join(static, 'uploaded_images')
       os.makedirs(upload_folder, exist_ok=True)
-      image_file.filename = secure_filename(image_file.filename)
-      if image_file and image_file.filename:
-          image_path = os.path.join(upload_folder, image_file.filename)
-          image_file.save(image_path)
 
       required_fields = ['name', 'description', 'category', 'price', 'auction_time', 'location', 'condition', 'published']
       missing_fields = [field for field in required_fields if not form.get(field)]
       if missing_fields:
         return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+
+      if not check_auction_form_types(form):
+        return jsonify({"error": "Invalid field types in request body"}), 400
+
       if image_file is None or not image_file.filename:
         return jsonify({"error": "image_large file is required"}), 400
 
+      image_file.filename = secure_filename(image_file.filename)
+      if not image_file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+        return jsonify({"error": "Invalid image format. Only JPG, JPEG, PNG, and WEBP are allowed."}), 400
+
+      image_path = os.path.join(upload_folder, image_file.filename)
+      image_file.save(image_path)
+
       # Persist filename only for now to match existing DB column usage.
-      image_large = '/' + os.path.join('static', 'uploaded_images', image_file.filename).replace('\\', '/') if image_file and image_file.filename else None
+      image_large = '/' + os.path.join('static', 'uploaded_images', image_file.filename).replace('\\', '/')
       print("Received multipart form data with image file:", image_large)
       payload = {
         'name': form.get('name'),
         'description': form.get('description'),
-        'category': form.get('category'),
-        'price': form.get('price'),
-        'auction_time': form.get('auction_time'),
+        'category': int(form.get('category')),
+        'price': float(form.get('price')),
+        'auction_time': int(form.get('auction_time')),
         'location': form.get('location'),
         'condition': form.get('condition'),
         'published': str(form.get('published')).lower() == 'true',
@@ -392,9 +428,10 @@ def api_create_auction():
     )
     if resp is None:
         return jsonify({"error": "Error creating auction"}), 400
-    return jsonify({"message": "Auction created successfully"}), 201
+    print("Auction created:", resp)
+    return jsonify(resp), 200
 
-@api_bp.route('/auctions/update/<int:auction_id>', methods=['PUT'])
+@api_bp.route('/auctions/<int:auction_id>', methods=['PUT'])
 @token_required
 def api_update_auction(auction_id):
     """
@@ -411,8 +448,76 @@ def api_update_auction(auction_id):
         description: Not implemented
     """
     # Implement the logic to update an auction
-        
-    return ("", 501)
+    auction = auctions.get_auction_by_id(auction_id, increment_views=False, update_request=True)
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
+    
+    user_id = g.user_id
+    if auction['owner_id'] != user_id:
+        return jsonify({"error": "Unauthorized to update this auction"}), 403
+
+    is_multipart = request.content_type and 'multipart/form-data' in request.content_type
+
+    if is_multipart:
+      form = request.form
+      image_file = request.files.get('image_large')
+      static = current_app.static_folder
+      upload_folder = os.path.join(static, 'uploaded_images')
+      os.makedirs(upload_folder, exist_ok=True)
+
+      optional_fields = ['name', 'description', 'category', 'price', 'auction_time', 'location', 'condition', 'published']
+      for field in form:
+        if field not in optional_fields:
+            return jsonify({"error": f"Unexpected field: {field}"}), 400
+
+      if not check_auction_form_types(form):
+        return jsonify({"error": "Invalid field types in request body"}), 400
+
+      if image_file and image_file.filename:
+        image_file.filename = secure_filename(image_file.filename)
+        if not image_file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+          return jsonify({"error": "Invalid image format. Only JPG, JPEG, PNG, and WEBP are allowed."}), 400
+
+        image_path = os.path.join(upload_folder, image_file.filename)
+        image_file.save(image_path)
+
+        # Persist filename only for now to match existing DB column usage.
+        image_large = '/' + os.path.join('static', 'uploaded_images', image_file.filename).replace('\\', '/')
+
+      payload = {}
+      if form.get('name') is not None:
+        payload['name'] = form.get('name')
+      if form.get('description') is not None:
+        payload['description'] = form.get('description')
+      if form.get('category') is not None:
+        payload['category'] = int(form.get('category'))
+      if form.get('price') is not None:
+        payload['price'] = float(form.get('price'))
+      if form.get('auction_time') is not None:
+        payload['auction_time'] = int(form.get('auction_time'))
+      if form.get('location') is not None:
+        payload['location'] = form.get('location')
+      if form.get('condition') is not None:
+        payload['condition'] = form.get('condition')
+      if form.get('published') is not None:
+        payload['published'] = str(form.get('published')).lower() == 'true'
+      if image_file and image_file.filename:
+        payload['image_small'] = image_large
+        payload['image_regular'] = image_large
+    else:
+        return jsonify({"error": "Only multipart/form-data is supported for auction updates"}), 400
+
+    if not payload:
+        return jsonify({"error": "No fields provided to update"}), 400
+
+    print("Updating auction with data:", payload)
+
+    resp = auctions.update_auction(auction_id, payload)
+    if resp is None:
+        return jsonify({"error": "Error updating auction"}), 400
+    auction = auctions.get_auction_by_id(auction_id, increment_views=False, update_request=True)
+    return jsonify(auction), 200
+
 
 @api_bp.route('/users', methods=['POST'])
 def api_create_user():
@@ -426,9 +531,9 @@ def api_create_user():
         schema:
           type: object
           properties:
-            firstName:
+            first_name:
               type: string
-            lastName:
+            last_name:
               type: string
             email:
               type: string
@@ -437,8 +542,8 @@ def api_create_user():
             city:
               type: string
           required:
-            - firstName
-            - lastName
+            - first_name
+            - last_name
             - email
             - password
     responses:
@@ -449,10 +554,12 @@ def api_create_user():
     """
     # Implement the logic to create a new user
     data = request.get_json(silent=True)
-    if not check_valid_json(data, ['firstName', 'lastName', 'email', 'password']):
+    first_name = data.get('first_name') if data else None
+    last_name = data.get('last_name') if data else None
+
+    if not data or not all([first_name, last_name, data.get('email'), data.get('password')]):
         return jsonify({"error": "Not valid format"}), 400
-    first_name = data.get('firstName')
-    last_name = data.get('lastName')
+
     city = data.get('city')
     email = data.get('email')
     if not check_email_format(email):
@@ -466,10 +573,10 @@ def api_create_user():
         return jsonify({"error": "Error creating user"}), 400
     resp = {
         "id": resp.id,
-        "firstName": resp.firstName,
-        "lastName": resp.lastName,
+      "first_name": resp.first_name,
+      "last_name": resp.last_name,
         "city": resp.city,
-        "accountCreated": resp.accountCreated,
+      "account_created": resp.account_created,
     }
     return (jsonify(resp), 201)
 
@@ -511,10 +618,10 @@ def api_get_user(user_id):
     if resp:
         resp = {
             "id": resp.id,
-            "firstName": resp.firstName,
-            "lastName": resp.lastName,
+        "first_name": resp.first_name,
+        "last_name": resp.last_name,
             "city": resp.city,
-            "accountCreated": resp.accountCreated,
+        "account_created": resp.account_created,
         }
         return (jsonify(resp), 200)
     return ("", 404)

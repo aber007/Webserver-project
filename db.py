@@ -40,11 +40,11 @@ def user_row_to_user(row) -> 'User':
     Converts a database row to a User dataclass instance.
     """
     return User(
-        id=row.get("ID"),
-        lastName=row.get("lastName"),
-        firstName=row.get("firstName"),
+        id=row.get("id"),
+        last_name=row.get("last_name"),
+        first_name=row.get("first_name"),
         city=row.get("city"),
-        accountCreated=row.get("accountCreated"),
+        account_created=row.get("account_created"),
         password=row.get("password"),
         email=row.get("email"),
     )
@@ -52,10 +52,10 @@ def user_row_to_user(row) -> 'User':
 @dataclass
 class User:
     id: int
-    lastName: str
-    firstName: str
+    last_name: str
+    first_name: str
     city: str
-    accountCreated: str
+    account_created: str
     password: str
     email: str
 
@@ -89,19 +89,19 @@ def run_sql(sql, params=None, *, fetch_one=False, fetch_all=True, commit=False, 
 
 class Users:
     @staticmethod
-    def create_user(lastName, firstName, city, email, accountCreated, password : str):
+    def create_user(last_name, first_name, city, email, account_created, password : str):
         """
         Inserts a new user into the database.
         """
-        print("Account created:", accountCreated)
+        print("Account created:", account_created)
 
 
         hashed_pass = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        sql = "INSERT INTO users (lastName, firstName, city, accountCreated, password, email) VALUES (%s, %s, %s, %s, %s, %s)"
+        sql = "INSERT INTO users (last_name, first_name, city, account_created, password, email) VALUES (%s, %s, %s, %s, %s, %s)"
         try:
             run_sql(
                 sql,
-                (lastName, firstName, city, accountCreated, hashed_pass, email),
+                (last_name, first_name, city, account_created, hashed_pass, email),
                 commit=True,
                 fetch_all=False,
             )
@@ -119,7 +119,7 @@ class Users:
         Returns None if no user is found.
         """
 
-        sql = "SELECT * FROM users WHERE ID = %s"
+        sql = "SELECT id, last_name, first_name, city, account_created, password, email FROM users WHERE id = %s"
         row = run_sql(sql, (user_id,), fetch_one=True, fetch_all=False)
 
         if not row:
@@ -133,7 +133,7 @@ class Users:
         Retrieves a user from the database by email and returns a User instance.
         Returns None if no user is found.
         """
-        sql = "SELECT * FROM users WHERE email = %s"
+        sql = "SELECT id, last_name, first_name, city, account_created, password, email FROM users WHERE email = %s"
         row = run_sql(sql, (email,), fetch_one=True, fetch_all=False)
 
         if not row:
@@ -145,17 +145,17 @@ class Users:
         """
         Retrieves all user IDs from the database.
         """
-        rows = run_sql("SELECT ID FROM users")
+        rows = run_sql("SELECT id FROM users")
         if not rows:
             return []
-        return [row["ID"] for row in rows]
+        return [row["id"] for row in rows]
 
     @staticmethod
     def delete_user(user_id):
         """
         Deletes a user from the database by user ID.
         """
-        run_sql("DELETE FROM users WHERE ID = %s", (user_id,), commit=True, fetch_all=False)
+        run_sql("DELETE FROM users WHERE id = %s", (user_id,), commit=True, fetch_all=False)
 
     @staticmethod
     def update_user_email(user_id, new_email):
@@ -163,7 +163,7 @@ class Users:
         Updates the email of a user in the database.
         """
         run_sql(
-            "UPDATE users SET email = %s WHERE ID = %s",
+            "UPDATE users SET email = %s WHERE id = %s",
             (new_email, user_id),
             commit=True,
             fetch_all=False,
@@ -175,7 +175,7 @@ class Users:
         """
         Fetches all users from the database
         """
-        rows = run_sql("SELECT ID, lastName, firstName, city, email FROM users")
+        rows = run_sql("SELECT id, last_name, first_name, city, email, account_created FROM users")
         return rows or []
 
 def get_category_id(category):
@@ -194,51 +194,69 @@ def get_category_id(category):
 
 class Auctions:
     @staticmethod
-    def get_auctions_by_category(category, count, offset, sort, user=None):
+    def get_auctions_by_category(category, count, offset, sort, owner_id=None):
         """
         Fetches the auctions from a specific category
         """
         category_id = get_category_id(category)
         allowed_sorts = {"published_at", "views", "price"}
         sort_column = sort if sort in allowed_sorts else "published_at"
+
+        where_clause = "WHERE a.category_id = %s AND a.published = TRUE"
+        params = [category_id]
+
+        if owner_id is not None:
+            where_clause += " AND a.owner_id = %s"
+            params.append(owner_id)
+
         query = (
             "SELECT a.id, a.name, a.price, a.image_small, a.published_at, a.auction_time, a.views, "
             "c.name AS category_name, COUNT(b.id) AS bid_count "
             "FROM auctions a "
             "INNER JOIN categories c ON a.category_id = c.id "
             "LEFT JOIN bids b ON b.auction_id = a.id "
-            f"WHERE a.category_id = %s AND a.published = TRUE {'AND a.seller_id = %s' if user else ''}"
+            f"{where_clause} "
             "GROUP BY a.id, a.name, c.name "
             f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
         )
-        rows = run_sql(query, (category_id, user.id) if user else (category_id,), fetch_all=True)
+
+        params.extend([count, offset])
+        rows = run_sql(query, tuple(params))
         return rows or []
     @staticmethod
-    def get_all_auctions(count, offset, sort, user=None):
+    def get_all_auctions(count, offset, sort, owner_id=None):
         """
         Fetches all auctions from the database
         """
         allowed_sorts = {"published_at", "views", "price"}
         sort_column = sort if sort in allowed_sorts else "published_at"
+        where_clause = "WHERE a.published = TRUE"
+        params = []
+        if owner_id is not None:
+            where_clause += " AND a.owner_id = %s"
+            params.append(owner_id)
         query = (
             "SELECT a.id, a.name, a.price, a.image_small, a.published_at, a.auction_time, a.views, "
             "c.name AS category_name, COUNT(b.id) AS bid_count "
             "FROM auctions a "
             "INNER JOIN categories c ON a.category_id = c.id "
             "LEFT JOIN bids b ON b.auction_id = a.id "
-            "WHERE a.published = TRUE "
+            f"{where_clause} "
             "GROUP BY a.id, a.name, c.name "
             f"ORDER BY {sort_column} DESC LIMIT %s OFFSET %s"
         )
-        rows = run_sql(query, (count, offset))
+        params.extend([count, offset])
+        rows = run_sql(query, tuple(params))
         return rows or []
     @staticmethod
-    def get_auction_by_id(auction_id):
+    def get_auction_by_id(auction_id, increment_views=True, update_request=False):
         """
         Fetches a specific auction by its ID
         """
+        if increment_views:
+            run_sql("UPDATE auctions SET views = views + 1 WHERE id = %s", (auction_id,), commit=True, fetch_all=False)
         return run_sql(
-            "SELECT a.*, c.name AS category_name, COUNT(b.id) AS bid_count FROM auctions a INNER JOIN categories c ON a.category_id = c.id LEFT JOIN bids b ON b.auction_id = a.id WHERE a.id = %s AND a.published = TRUE GROUP BY a.id, a.name, c.name;",
+            f"SELECT a.*, c.name AS category_name, COUNT(b.id) AS bid_count FROM auctions a INNER JOIN categories c ON a.category_id = c.id LEFT JOIN bids b ON b.auction_id = a.id WHERE a.id = %s {('AND a.published = TRUE') if not update_request else ''} GROUP BY a.id, a.name, c.name;",
             (auction_id,),
             fetch_one=True,
             fetch_all=False,
@@ -249,17 +267,58 @@ class Auctions:
         Inserts a new auction into the database.
         """
 
-        resp = run_sql(
-            "INSERT INTO auctions (name, description, price, category_id, image_small, image_regular, auction_time, location, auction_condition, published, owner_id, published_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at),
-            commit=True,
-            fetch_all=False,
-        )
-        print("Auction creation response:", resp)
-        id = run_sql("SELECT LAST_INSERT_ID() AS id", fetch_one=True, fetch_all=False)
-        if id:
-            return id["id"]
-        return None
+        # Insert auction and get last inserted ID reliably
+        conn = get_db_connection()
+        if conn is None:
+            return None
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO auctions (name, description, price, category_id, image_small, image_regular, auction_time, location, auction_condition, published, owner_id, published_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at)
+            )
+            auction_id = cursor.lastrowid
+            conn.commit()
+        except mysql.connector.Error as e:
+            print(f"Error creating auction: {e}")
+            auction_id = None
+            conn.rollback()
+        finally:
+            cursor.close()
+            close_db_connection(conn)
+        return {"id": auction_id} if auction_id else None
+    @staticmethod
+    def update_auction(auction_id, fields: dict):
+        """
+        Updates an auction with only the provided fields.
+        `fields` is a dict mapping form-field names to their new values.
+        """
+        # Map form field names to DB column names
+        column_map = {
+            'name': 'name',
+            'description': 'description',
+            'category': 'category_id',
+            'price': 'price',
+            'auction_time': 'auction_time',
+            'location': 'location',
+            'condition': 'auction_condition',
+            'published': 'published',
+            'image_small': 'image_small',
+            'image_regular': 'image_regular',
+        }
+        set_parts = []
+        values = []
+        for key, value in fields.items():
+            col = column_map.get(key)
+            if col:
+                set_parts.append(f"{col} = %s")
+                values.append(value)
+        if not set_parts:
+            return None
+        values.append(auction_id)
+        sql = f"UPDATE auctions SET {', '.join(set_parts)} WHERE id = %s"
+        return run_sql(sql, tuple(values), commit=True, fetch_all=False)
+
     @staticmethod
     def update_published(auction_id, published_status):
         """

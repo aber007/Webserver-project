@@ -40,6 +40,7 @@ def handle_unexpected_error(err):
     # Keep Flask HTTP errors (404/405/etc.) unchanged; normalize true server errors to empty 500.
     if isinstance(err, HTTPException):
         return err
+    print("Unexpected error:", err)
     return ("", 500)
 
 def login_required(f):
@@ -67,11 +68,11 @@ def login_required(f):
             
             session['current_user'] = {
                 'id': user.id,
-                'firstName': user.firstName,
-                'lastName': user.lastName,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
                 'email': user.email,
                 'city': user.city,
-                'accountCreated': user.accountCreated
+                'account_created': user.account_created
             }
             
         except jwt.ExpiredSignatureError:
@@ -162,11 +163,11 @@ def login():
         session['user_id'] = user_obj.id
         session['current_user'] = {
             'id': user_obj.id,
-            'firstName': user_obj.firstName,
-            'lastName': user_obj.lastName,
+            'first_name': user_obj.first_name,
+            'last_name': user_obj.last_name,
             'email': user_obj.email,
             'city': user_obj.city,
-            'accountCreated': user_obj.accountCreated
+            'account_created': user_obj.account_created
         }
         
         return response
@@ -184,8 +185,8 @@ def serve_docs(path):
 def signup():
     if request.method == 'POST':
         print("Signup form submitted")
-        first_name = request.form.get('firstname')
-        last_name = request.form.get('lastname')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
         city = request.form.get('location')
         email = request.form.get('email')
         password = request.form.get('password')
@@ -207,11 +208,11 @@ def signup():
         session['user_id'] = resp.id
         session['current_user'] = {
             'id': resp.id,
-            'firstName': resp.firstName,
-            'lastName': resp.lastName,
+            'first_name': resp.first_name,
+            'last_name': resp.last_name,
             'email': resp.email,
             'city': resp.city,
-            'accountCreated': resp.accountCreated
+            'account_created': resp.account_created
         }
 
         if resp:

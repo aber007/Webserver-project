@@ -1,0 +1,87 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-13T00:00:00.000Z",
+  "__export_source": "gpt-5.3-codex",
+  "resources": [
+    {
+      "_id": "wrk_tradee_create_auction",
+      "_type": "workspace",
+      "name": "Tradee API - Create Auction Only",
+      "description": "Insomnia collection with only the auction creation endpoint"
+    },
+    {
+      "_id": "env_tradee_create_auction_base",
+      "_type": "environment",
+      "parentId": "wrk_tradee_create_auction",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://127.0.0.1:5000",
+        "token": ""
+      }
+    },
+    {
+      "_id": "fld_auctions_only",
+      "_type": "request_group",
+      "parentId": "wrk_tradee_create_auction",
+      "name": "Auctions"
+    },
+    {
+      "_id": "req_create_auction_only",
+      "_type": "request",
+      "parentId": "fld_auctions_only",
+      "name": "POST /api/auctions",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auctions",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "name",
+            "value": "Vintage Chair"
+          },
+          {
+            "name": "description",
+            "value": "Solid wood chair in great condition"
+          },
+          {
+            "name": "category",
+            "value": "furniture"
+          },
+          {
+            "name": "price",
+            "value": "50"
+          },
+          {
+            "name": "auction_time",
+            "value": "86400"
+          },
+          {
+            "name": "location",
+            "value": "Stockholm"
+          },
+          {
+            "name": "condition",
+            "value": "used"
+          },
+          {
+            "name": "published",
+            "value": "true"
+          },
+          {
+            "name": "image_large",
+            "type": "file",
+            "fileName": "C:\\path\\to\\image.jpg"
+          }
+        ]
+      },
+      "afterResponseScript": "const status = insomnia.response.code;\ninsomnia.test(\"Create auction status is valid\", () => {\n  insomnia.expect(status).to.be.oneOf([200, 400, 401]);\n});\n\nlet body = null;\ntry {\n  body = insomnia.response.json();\n} catch (e) {\n  body = null;\n}\n\nif (status === 200 && body && body.id !== undefined) {\n  insomnia.environment.set(\"auction_id\", body.id);\n}"
+    }
+  ]
+}
