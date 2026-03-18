@@ -580,6 +580,70 @@ def api_create_user():
     }
     return (jsonify(resp), 201)
 
+@api_bp.route('/users', methods=['PUT'])
+@token_required
+def api_update_user():
+    """
+    Update user details (requires authentication)
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            first_name:
+              type: string
+            last_name:
+              type: string
+            city:
+              type: string
+    responses:
+      200:
+        description: User updated successfully
+      400:
+        description: Invalid format
+      401:
+        description: Authentication token missing or invalid
+    """
+    # Implement the logic to update user details
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Not valid format"}), 400
+    user_id = g.user_id
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    city = data.get('city')
+    email = data.get('email')
+    if email and not check_email_format(email):
+        return jsonify({"error": "Invalid email format"}), 400
+    update_data = {}
+    if email:
+        update_data['email'] = email
+    if first_name:
+        update_data['first_name'] = first_name
+    if last_name:
+        update_data['last_name'] = last_name
+    if city:
+        update_data['city'] = city
+    if not update_data:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    resp = users.update_user(user_id, update_data)
+    if resp is None:
+        return jsonify({"error": "Error updating user"}), 400
+    resp = {
+      "id": resp.id,
+      "first_name": resp.first_name,
+      "last_name": resp.last_name,
+      "email": resp.email,
+      "city": resp.city,
+      "account_created": resp.account_created,
+    }
+    return (jsonify(resp), 200)
+
+
 @api_bp.route('/users', methods=['GET'])
 @token_required
 def api_get_all_users():
@@ -597,6 +661,7 @@ def api_get_all_users():
     return (jsonify(resp), 200)
 
 @api_bp.route('/users/<int:user_id>', methods=['GET'])
+@token_required
 def api_get_user(user_id):
     """
     Get user details by ID

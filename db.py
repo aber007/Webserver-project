@@ -158,17 +158,22 @@ class Users:
         run_sql("DELETE FROM users WHERE id = %s", (user_id,), commit=True, fetch_all=False)
 
     @staticmethod
-    def update_user_email(user_id, new_email):
+    def update_user(user_id, update_data):
         """
-        Updates the email of a user in the database.
+        Updates a user's information in the database.
         """
-        run_sql(
-            "UPDATE users SET email = %s WHERE id = %s",
-            (new_email, user_id),
-            commit=True,
-            fetch_all=False,
-        )
-    
+        if not update_data:
+            return None
+
+        set_clause = ", ".join([f"{key} = %s" for key in update_data])
+        sql = f"UPDATE users SET {set_clause} WHERE id = %s"
+
+        params = list(update_data.values()) + [user_id]
+        resp = run_sql(sql, tuple(params), commit=True, fetch_all=False)
+        if resp is None:
+            return None
+        
+        return Users.get_user_by_id(user_id)                
 
     @staticmethod
     def get_all_users():
