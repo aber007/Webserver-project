@@ -9,6 +9,7 @@ import os
 import requests
 import jwt
 import bcrypt
+import yaml
 
 dotenv.load_dotenv()
 
@@ -19,14 +20,11 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'supersecretkey')
 
 # Initialize Flasgger for API documentation
-swagger = Swagger(app, template={
-    "swagger": "2.0",
-    "info": {
-        "title": "Tradee API",
-        "description": "API for Tradee marketplace",
-        "version": "1.0.0"
-    }
-})
+swagger_spec_path = os.path.join(os.path.dirname(__file__), 'swagger.yaml')
+with open(swagger_spec_path, 'r') as f:
+    swagger_spec = yaml.safe_load(f)
+
+swagger = Swagger(app, template=swagger_spec)
 
 # Register API blueprint
 app.register_blueprint(api_bp)
