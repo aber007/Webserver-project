@@ -84,7 +84,7 @@ def check_valid_json(data, required_fields):
 def api_categories():
     categories = auctions.get_popular_categories()
     if not categories:
-        return jsonify([]), 500
+        return jsonify([]), 200
     return jsonify(categories), 200
 
 def query_search(query, auctions_items):
@@ -154,18 +154,19 @@ def api_place_bid(auction_id):
         return jsonify({"error": "Bid must be higher than current highest bid"}), 400
 
     # Get user id from token or cookie
-    auth_header = request.headers.get('Authorization')
-    if auth_header and auth_header.startswith('Bearer '):
-        token = auth_header.split(' ')[1]
-    elif request.cookies.get('jwt_token'):
-        token = request.cookies.get('jwt_token')
-    else:
-        return jsonify({"error": "Authentication token is missing"}), 401
-    user_id = jwt.decode(token, current_app.secret_key, algorithms=["HS256"])['user_id']
-    
+    user_id = g.user_id
     # Update the auction with the new highest bid and increment number of bids.
 
-    auctions.place_bid(auction_id, user_id, amount)
+    bid_placed = auctions.place_bid(auction_id, user_id, amount)
+    if not bid_placed:
+      # Re-check current state to distinguish conflict/not-found from server failures.
+      latest_auction = auctions.get_auction_by_id(auction_id)
+      if not latest_auction:
+        return jsonify({"error": "Auction not found"}), 404
+      if amount <= latest_auction['price']:
+        return jsonify({"error": "Bid is no longer higher than the current highest bid"}), 409
+      return jsonify({"error": "Failed to place bid"}), 500
+
     return jsonify({"message": "Bid placed successfully"}), 200
 
 @api_bp.route('/auctions/remove_published', methods=['PUT'])
@@ -392,6 +393,53 @@ def api_create_auction():
         return jsonify({"error": "Error creating auction"}), 400
     print("Auction created:", resp)
     return jsonify(resp), 200
+
+@api_bp.route('/auctions/<int:auction_id>', methods=['DELETE'])
+@token_required
+def api_delete_auction(auction_id):
+    """
+    Delete an auction
+    ---
+    security:
+      - Bearer: []
+      - Cookie: []
+    parameters:
+      - name: auction_id
+        in: path
+        type: integer
+        required: true
+        description: The auction ID to delete
+    responses:
+      200:
+        description: Auction deleted successfully
+        schema:
+          type: object
+          properties:
+            message: 
+              type: string
+      400:
+        description: Invalid auction ID or other errors
+      401:
+        description: Authentication token missing or invalid
+      403:
+        description: Unauthorized to delete this auction
+      404:
+        description: Auction not found
+    """
+    # Implement the logic to delete an auction
+    auction = auctions.get_auction_by_id(auction_id, increment_views=False, update_request=True)
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
+    
+    user_id = g.user_id
+    if auction['owner_id'] != user_id:
+        return jsonify({"error": "Unauthorized to delete this auction"}), 403
+
+    success = auctions.delete_auction(auction_id)
+    if success:
+        return jsonify({"message": "Auction deleted successfully"}), 200
+    else:
+        return jsonify({"error": "Error deleting auction"}), 400
 
 @api_bp.route('/auctions/<int:auction_id>', methods=['PUT'])
 @token_required
@@ -777,10 +825,10 @@ def api_get_user(user_id):
     resp = users.get_user_by_id(user_id)
     if resp:
         resp = {
-            "id": resp.id,
+        "id": resp.id,
         "first_name": resp.first_name,
         "last_name": resp.last_name,
-            "city": resp.city,
+        "city": resp.city,
         "account_created": resp.account_created,
         }
         return (jsonify(resp), 200)

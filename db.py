@@ -254,6 +254,12 @@ class Auctions:
         rows = run_sql(query, tuple(params))
         return rows or []
     @staticmethod
+    def delete_auction(auction_id):
+        """
+        Deletes an auction from the database by auction ID.
+        """
+        run_sql("DELETE FROM auctions WHERE id = %s", (auction_id,), commit=True, fetch_all=False)
+    @staticmethod
     def get_auction_by_id(auction_id, increment_views=True, update_request=False):
         """
         Fetches a specific auction by its ID
