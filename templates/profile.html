@@ -100,7 +100,6 @@ block content %}
     <div class="profile-section" id="listings">
       <div class="profile-section-header">
         <h2>Your listings</h2>
-        <button class="profile-link" type="button">Manage listings</button>
       </div>
       <div class="profile-listings-grid" id="profile-listings-grid">
         {% for i in range(4) %}
@@ -120,7 +119,7 @@ block content %}
     await add_auctions(
       "published_at",
       auctions_offset,
-      4,
+      1000,
       "",
       "profile-listings-grid",
       {
@@ -128,8 +127,23 @@ block content %}
         owner_id: {{ (user.id if user else None)|tojson }},
       },
     );
-    let count = 0;
+    // Remove placeholder cards (those with placeholder images)
+    const placeholders = document.querySelectorAll(".auction-preview-placeholder");
+    placeholders.forEach(placeholder => {
+      placeholder.closest(".auction-preview-card").remove();
+    });
+
+    // Add edit buttons to loaded auctions
+    auctions = document.querySelectorAll(".auction-preview-card");
+    auctions.forEach(element => {
+      element.innerHTML += "<button class='auction-preview-edit-btn' type='button'>Edit</button>";
+      const editBtn = element.querySelector(".auction-preview-edit-btn");
+      editBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const auctionId = element.getAttribute("data-auction-id");
+        window.location.href = `/auctions/${auctionId}/edit`;
+      });
+    });
   });
-  auctions_grid.innerHTML = ""; // Clear placeholders
 </script>
 {% endblock %}

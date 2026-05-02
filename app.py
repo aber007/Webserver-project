@@ -121,6 +121,16 @@ def auction_detail(auction_id):
 def create_auction():
     return render_template('create_auction.html', user=session.get('current_user'))
 
+@app.route('/auctions/<int:auction_id>/edit')
+@login_required
+def edit_auction(auction_id):
+    auction_info = auctions.get_auction_by_id(auction_id, increment_views=False)
+    if not auction_info:
+        return "Auction not found", 404
+    if auction_info['owner_id'] != session.get('user_id'):
+        return "Unauthorized", 403
+    return render_template('edit_auction.html', auction=auction_info, user=session.get('current_user'))
+
 @app.route('/profile')
 @login_required
 def profile():

@@ -128,6 +128,7 @@ const add_auctions = async (
       remainingSeconds(auction.published_at, auction.auction_time),
     );
     auctionCard.className = "auction-preview-card auction-preview-card--small";
+    auctionCard.setAttribute("data-auction-id", auction.id);
     auctionCard.addEventListener("click", () => {
       window.location.href = `/auctions/${auction.id}`;
     });
