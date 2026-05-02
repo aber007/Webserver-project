@@ -389,11 +389,11 @@
       event.preventDefault();
       const form = document.getElementById("item_form");
       if (form) {
-        const url = "/api/auctions";
+        const url = "/api/auctions/{{ auction.id }}";
         const formData = new FormData(form);
         formData.set("published", "true");
         const response = await fetch(url, {
-          method: "POST",
+          method: "PUT",
           body: formData,
         });
         if (response.ok) {
@@ -409,12 +409,12 @@
       event.preventDefault();
       const form = document.getElementById("item_form");
       if (form) {
-        const url = "/api/auctions";
+        const url = "/api/auctions/{{ auction.id }}";
         const formData = new FormData(form);
         console.log("Submitting form", formData);
         formData.set("published", "false");
         const response = await fetch(url, {
-          method: "POST",
+          method: "PUT",
           body: formData,
         });
         if (response.ok) {
