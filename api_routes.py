@@ -477,14 +477,6 @@ def api_update_auction(auction_id):
         in: formData
         type: integer
         description: (Optional) Category ID
-      - name: price
-        in: formData
-        type: number
-        description: (Optional) Price
-      - name: auction_time
-        in: formData
-        type: integer
-        description: (Optional) Auction duration in seconds
       - name: location
         in: formData
         type: string
@@ -538,7 +530,7 @@ def api_update_auction(auction_id):
       upload_folder = os.path.join(static, 'uploaded_images')
       os.makedirs(upload_folder, exist_ok=True)
 
-      optional_fields = ['name', 'description', 'category', 'price', 'auction_time', 'location', 'condition', 'published']
+      optional_fields = ['name', 'description', 'category', 'location', 'condition', 'published']
       for field in form:
         if field not in optional_fields:
             return jsonify({"error": f"Unexpected field: {field}"}), 400

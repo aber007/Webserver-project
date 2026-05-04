@@ -1570,6 +1570,11 @@ body {
     background 0.2s ease;
 }
 
+.red {
+  border-color: #f44336;
+  background: #fc3754;
+}
+
 .create-auction-dropzone:hover {
   border-color: #2c5f2d;
   background: #ffffff;
