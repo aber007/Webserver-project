@@ -131,6 +131,13 @@ def api_auction_detail(auction_id):
         return jsonify({"error": "Auction not found"}), 404
     return jsonify(auction)
 
+@api_bp.route('/auctions/<int:auction_id>/bids', methods=['GET'])
+def api_auction_bids(auction_id):
+    bids = auctions.get_bids_by_auction_id(auction_id)
+    if not bids:
+        return jsonify({"error": "No bids found for this auction"}), 404
+    return jsonify(bids)
+
 @api_bp.route('/auctions/<int:auction_id>/bid', methods=['POST'])
 @token_required
 def api_place_bid(auction_id):
@@ -833,6 +840,8 @@ def api_get_user(user_id):
         }
         return (jsonify(resp), 200)
     return ("", 404)
+
+
 
 @api_bp.route('/login', methods=['POST'])
 def api_login():

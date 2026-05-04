@@ -49,26 +49,16 @@
             />
             <button class="btn-bid">Place Bid</button>
           </div>
-          <button class="btn-watchlist unfinished">Add to Watchlist</button>
         </div>
       </div>
     </div>
 
-    <div class="auction-bidding-history unfinished">
+    <div class="auction-bidding-history">
       <h2>Bidding History</h2>
       <!-- TODO -->
       <div class="bids-list">
         <div class="bid-item">
-          <span class="bid-user">User 1</span>
-          <span class="bid-amount">$125</span>
-        </div>
-        <div class="bid-item">
-          <span class="bid-user">User 2</span>
-          <span class="bid-amount">$115</span>
-        </div>
-        <div class="bid-item">
-          <span class="bid-user">User 3</span>
-          <span class="bid-amount">$100</span>
+          <span class="bid-user">No bids yet</span>
         </div>
       </div>
     </div>
@@ -192,6 +182,33 @@
         }
       } catch (error) {
         console.error("Error fetching auction details:");
+      }
+      try {
+        const bidsResponse = await fetch(
+          `${window.location.origin}/api/auctions/${auctionId}/bids`,
+        );
+        if (!bidsResponse.ok) {
+          throw new Error("Response not ok: " + bidsResponse.status);
+        }
+        const bids = await bidsResponse.json();
+        const bidsListElem = document.querySelector(".bids-list");
+        bidsListElem.innerHTML = "";
+        console.log(bids);
+        bids.forEach((bid) => {
+          const bidItem = document.createElement("div");
+          bidItem.classList.add("bid-item");
+          const bidUser = document.createElement("span");
+          bidUser.classList.add("bid-user");
+          bidUser.textContent = `${bid.first_name} ${bid.last_name}`;
+          const bidAmount = document.createElement("span");
+          bidAmount.classList.add("bid-amount");
+          bidAmount.textContent = `$${bid.price}`;
+          bidItem.appendChild(bidUser);
+          bidItem.appendChild(bidAmount);
+          bidsListElem.appendChild(bidItem);
+        });
+      } catch (error) {
+        console.error("Error fetching bids:", error);
       }
     });
   </script>

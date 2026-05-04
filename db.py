@@ -273,6 +273,17 @@ class Auctions:
             fetch_all=False,
         )
     @staticmethod
+    def get_bids_by_auction_id(auction_id):
+        """
+        Fetches all bids for a specific auction ID
+        """
+        return run_sql(
+            "SELECT b.id, b.price, u.first_name, u.last_name FROM bids b INNER JOIN users u ON b.user_id = u.id WHERE b.auction_id = %s ORDER BY b.price DESC",
+            (auction_id,),
+        ) or []
+    
+    
+    @staticmethod
     def create_auction(name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at):
         """
         Inserts a new auction into the database.

@@ -39,7 +39,7 @@
                   type="text"
                   placeholder=""
                   value="{{ auction.name }}"
-                  required
+                  
                 />
               </div>
               <div class="create-auction-field">
@@ -50,7 +50,7 @@
                   class="create-auction-select"
                   id="category"
                   name="category"
-                  required
+                  
                 >
                   <option value="">Select a category</option>
                   <option value="1" {% if auction.category_name == "toys" %}selected{% endif %}>Toys</option>
@@ -66,7 +66,7 @@
                   class="create-auction-select"
                   id="condition"
                   name="condition"
-                  required
+                  
                 >
                   <option value="">Select condition</option>
                   <option value="new" {% if auction.condition == "new" %}selected{% endif %}>New</option>
@@ -85,7 +85,7 @@
                   name="location"
                   type="text"
                   value="{{ auction.location }}"
-                  required
+                  
                 />
               </div>
             </div>
@@ -112,7 +112,7 @@
                     min="0"
                     max="9999999"
                     value="{{ auction.price }}"
-                    required
+                    
                   />
                 </div>
               </div>
@@ -124,7 +124,7 @@
                   class="create-auction-select"
                   id="auction_time"
                   name="auction_time"
-                  required
+                  
                 >
                   <option value="">Select duration</option>
                   <option value="24" {% if auction.auction_time == "24" %}selected{% endif %}>24 hours</option>
@@ -151,7 +151,7 @@
                 name="description"
                 placeholder="Condition, measurements, pickup details, and anything else a buyer should know."
                 rows="6"
-                required
+                
               >
 {{ auction.description }}
               </textarea>
@@ -179,7 +179,7 @@
                 name="image_large"
                 type="file"
                 accept="image/*"
-                required
+                
               />
               <div class="create-auction-upload-preview" aria-live="polite">
                 <img
