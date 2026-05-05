@@ -88,6 +88,8 @@
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to place bid");
         }
+        // Refresh the page to show the new bid
+        window.location.reload();
       } catch (error) {
         console.error("Error placing bid:", error);
         alert(`Error placing bid: ${error.message}`);
@@ -127,10 +129,6 @@
           throw new Error("Response not ok: " + response.status);
         }
         auction.seller = await seller_response.json();
-
-        console.log(auction);
-        console.log(auction.name);
-        console.log(auction.image_regular);
 
         auctionNameElem.textContent = auction.name;
         img = document.createElement("img");
@@ -202,10 +200,25 @@
           bidUser.textContent = `${bid.first_name} ${bid.last_name}`;
           const bidAmount = document.createElement("span");
           bidAmount.classList.add("bid-amount");
-          bidAmount.textContent = `$${bid.price}`;
+          bidAmount.textContent = `${bid.price} kr`;
           bidItem.appendChild(bidUser);
           bidItem.appendChild(bidAmount);
           bidsListElem.appendChild(bidItem);
+          console.log(Date.now());
+          let hours_ago = Math.floor(
+            (Date.now() - Date.parse(bid.published_at)) / 3600000,
+          );
+          const hours_ago_span = document.createElement("span");
+          hours_ago_span.classList.add("bid-amount");
+          if (hours_ago < 1) {
+            let minutesAgo = Math.floor(
+              (Date.now() - Date.parse(bid.published_at)) / 60000,
+            );
+            hours_ago_span.textContent = ` ${minutesAgo}m ago`;
+          } else {
+            hours_ago_span.textContent = ` ${hours_ago}h ago`;
+          }
+          bidItem.appendChild(hours_ago_span);
         });
       } catch (error) {
         console.error("Error fetching bids:", error);

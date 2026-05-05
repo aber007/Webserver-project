@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from flask import Blueprint, current_app, jsonify, request, g
 from werkzeug.utils import secure_filename
@@ -393,9 +393,8 @@ def api_create_auction():
       payload['location'],
       payload['condition'],
       payload['published'],
-      seller_id,
-      datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    )
+      seller_id
+              )
     if resp is None:
         return jsonify({"error": "Error creating auction"}), 400
     print("Auction created:", resp)
@@ -583,6 +582,31 @@ def api_update_auction(auction_id):
     auction = auctions.get_auction_by_id(auction_id, increment_views=False, update_request=True)
     return jsonify(auction), 200
 
+@api_bp.route('/users/<int:user_id>/recent', methods=['GET'])
+def api_get_recent_user_actions(user_id):
+    """
+    Get recent actions for a specific user
+    ---
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+        description: The user ID to retrieve recent actions for
+    responses:
+      200:
+        description: A list of recent actions for the user
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Auction'
+      404:
+        description: User not found or no recent actions for the user
+    """
+    recent_auctions = auctions.get_recent_user_actions(user_id)
+    if recent_auctions is None:
+        return jsonify({"error": "User not found or no recent actions for the user"}), 404
+    return jsonify(recent_auctions), 200
 
 @api_bp.route('/users', methods=['POST'])
 def api_create_user():

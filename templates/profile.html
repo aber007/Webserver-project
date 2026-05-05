@@ -64,10 +64,9 @@ block content %}
         </div>
       </div>
 
-      <div class="profile-card unfinished">
+      <div class="profile-card">
         <div class="profile-card-header">
           <h2>Recent activity</h2>
-          <button class="profile-link" type="button">View all</button>
         </div>
         <div class="profile-activity-list">
           <div class="profile-activity-item">
@@ -115,7 +114,79 @@ block content %}
 <script>
   let auctions_offset = 0;
   let auctions_grid = document.querySelector(".profile-listings-grid");
-  addEventListener("DOMContentLoaded", async () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const user_id = {{ (user.id if user else None)|tojson }};
+      if (!user_id) {
+        return;
+      }
+
+      const actionsResponse = await fetch(
+        `${window.location.origin}/api/users/${user_id}/recent`,
+      );
+      if (!actionsResponse.ok) {
+        throw new Error("Response not ok: " + actionsResponse.status);
+      }
+
+      const actions = await actionsResponse.json();
+      const activityList = document.querySelector(".profile-activity-list");
+      activityList.innerHTML = "";
+
+      const formatTimeAgo = (action) => {
+        const actionTime = Date.parse(action.action_time);
+        if (Number.isNaN(actionTime)) {
+          return "Unknown time";
+        }
+
+        const secondsAgo = Math.max(0, Math.floor((Date.now() - actionTime) / 1000));
+        const hoursAgo = Math.floor(secondsAgo / 3600);
+        const daysAgo = Math.floor(secondsAgo / 86400);
+        console.log(action.action_time, secondsAgo, hoursAgo, daysAgo);
+
+        if (daysAgo >= 1) {
+          return daysAgo === 1 ? "Yesterday" : `${daysAgo} days ago`;
+        }
+        if (hoursAgo >= 1) {
+          return `${hoursAgo} hours ago`;
+        }
+        const minutesAgo = Math.floor(secondsAgo / 60);
+        return minutesAgo <= 1 ? "Just now" : `${minutesAgo} minutes ago`;
+      };
+
+      actions.forEach((action) => {
+        const item = document.createElement("div");
+        item.classList.add("profile-activity-item");
+
+        const details = document.createElement("div");
+        const title = document.createElement("p");
+        title.classList.add("profile-activity-title");
+
+        const meta = document.createElement("p");
+        meta.classList.add("profile-activity-meta");
+
+        const tag = document.createElement("span");
+        tag.classList.add("profile-activity-tag");
+
+        if (action.action_type === "bid") {
+          title.textContent = `Placed a bid on ${action.auction_name || `Auction #${action.auction_id}`}`;
+          meta.textContent = `${formatTimeAgo(action)} · SEK ${action.bid_price}`;
+          tag.textContent = "Bid";
+        } else {
+          title.textContent = `Listing published: ${action.created_auction_name || `Auction #${action.auction_id}`}`;
+          meta.textContent = `${formatTimeAgo(action)} · ${action.views ?? 0} views`;
+          tag.textContent = "Listing";
+        }
+
+        details.appendChild(title);
+        details.appendChild(meta);
+        item.appendChild(details);
+        item.appendChild(tag);
+        activityList.appendChild(item);
+      });
+    } catch (error) {
+      console.error("Error fetching recent actions:", error);
+    }
+
     await add_auctions(
       "published_at",
       auctions_offset,

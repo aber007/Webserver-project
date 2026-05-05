@@ -1,3 +1,5 @@
+import datetime
+
 import mysql.connector
 import hashlib
 import bcrypt
@@ -278,18 +280,19 @@ class Auctions:
         Fetches all bids for a specific auction ID
         """
         return run_sql(
-            "SELECT b.id, b.price, u.first_name, u.last_name FROM bids b INNER JOIN users u ON b.user_id = u.id WHERE b.auction_id = %s ORDER BY b.price DESC",
+            "SELECT b.id, b.price, u.first_name, u.last_name, b.published_at FROM bids b INNER JOIN users u ON b.user_id = u.id WHERE b.auction_id = %s ORDER BY b.price DESC",
             (auction_id,),
         ) or []
     
     
     @staticmethod
-    def create_auction(name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at):
+    def create_auction(name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id):
         """
         Inserts a new auction into the database.
         """
 
         # Insert auction and get last inserted ID reliably
+        utc_now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         conn = get_db_connection()
         if conn is None:
             return None
@@ -297,7 +300,7 @@ class Auctions:
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO auctions (name, description, price, category_id, image_small, image_regular, auction_time, location, auction_condition, published, owner_id, published_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, published_at)
+                (name, description, price, category_id, image_small, image_regular, auction_time, location, condition, published, seller_id, utc_now)
             )
             auction_id = cursor.lastrowid
             conn.commit()
@@ -372,9 +375,11 @@ class Auctions:
             return False
         cursor = conn.cursor()
         try:
+            utc_now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+            print(f"Timestamp for bid: {utc_now.isoformat()}Z")
             cursor.execute(
-            "INSERT INTO bids (auction_id, user_id, price) VALUES (%s, %s, %s)",
-            (auction_id, user_id, bid_amount)
+            "INSERT INTO bids (auction_id, user_id, price, published_at) VALUES (%s, %s, %s, %s)",
+            (auction_id, user_id, bid_amount, utc_now)
             )
             cursor.execute(
             "UPDATE auctions SET price = %s, leader_id = %s WHERE id = %s",
@@ -390,6 +395,49 @@ class Auctions:
             close_db_connection(conn)
         
         return True
+    
+    @staticmethod
+    def get_recent_user_actions(user_id, limit=3):
+        """
+        Fetches recent actions (bids placed and auctions created) for a user.
+        """
+        query = (
+            "SELECT * FROM ("
+            "  SELECT "
+            "    'bid' AS action_type, "
+            "    b.user_id, "
+            "    a.id AS auction_id, "
+            "    a.name AS auction_name, "
+            "    NULL AS created_auction_name, "
+            "    b.price AS bid_price, "
+            "    TIMESTAMPDIFF(SECOND, b.published_at, UTC_TIMESTAMP()) AS seconds_ago, "
+            "    NULL AS seconds_since_created, "
+            "    NULL AS views, "
+            "    b.published_at AS action_time "
+            "  FROM bids b "
+            "  JOIN auctions a ON a.id = b.auction_id "
+            "  WHERE b.user_id = %s "
+            "  UNION ALL "
+            "  SELECT "
+            "    'created' AS action_type, "
+            "    a.owner_id AS user_id, "
+            "    a.id AS auction_id, "
+            "    NULL AS auction_name, "
+            "    a.name AS created_auction_name, "
+            "    NULL AS bid_price, "
+            "    NULL AS seconds_ago, "
+            "    TIMESTAMPDIFF(SECOND, a.published_at, UTC_TIMESTAMP()) AS seconds_since_created, "
+            "    a.views, "
+            "    a.published_at AS action_time "
+            "  FROM auctions a "
+            "  WHERE a.owner_id = %s "
+            ") AS activity "
+            "ORDER BY action_time DESC "
+            "LIMIT %s"
+        )
+        rows = run_sql(query, (user_id, user_id, limit))
+        return rows or []
+
     @staticmethod
     def get_popular_categories():
         """
