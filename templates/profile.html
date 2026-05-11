@@ -36,20 +36,20 @@ block content %}
           <!-- <span class="profile-chip">Verified</span> -->
         </div>
         <div class="profile-info-grid">
-          <div>
+          <div id="profile-name">
             <p class="profile-info-label">Full name</p>
             <p class="profile-info-value">
               {% if user %} {{ user.first_name }} {{ user.last_name }} {% else
               %} Tradee Member {% endif %}
             </p>
           </div>
-          <div>
+          <div id="profile-email">
             <p class="profile-info-label">Email</p>
             <p class="profile-info-value">
               {{ user.email if user else "member@tradee.com" }}
             </p>
           </div>
-          <div>
+          <div id="profile-location">
             <p class="profile-info-label">Location</p>
             <p class="profile-info-value">
               {{ user.city if user else "Add your city" }}
@@ -69,7 +69,7 @@ block content %}
           <h2>Recent activity</h2>
         </div>
         <div class="profile-activity-list">
-          <div class="profile-activity-item">
+          <!-- <div class="profile-activity-item">
             <div>
               <p class="profile-activity-title">Placed a bid on Vintage Lamp</p>
               <p class="profile-activity-meta">2 hours ago · SEK 180</p>
@@ -91,7 +91,7 @@ block content %}
               <p class="profile-activity-meta">2 days ago · Watchlist</p>
             </div>
             <span class="profile-activity-tag">Saved</span>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -141,7 +141,6 @@ block content %}
         const secondsAgo = Math.max(0, Math.floor((Date.now() - actionTime) / 1000));
         const hoursAgo = Math.floor(secondsAgo / 3600);
         const daysAgo = Math.floor(secondsAgo / 86400);
-        console.log(action.action_time, secondsAgo, hoursAgo, daysAgo);
 
         if (daysAgo >= 1) {
           return daysAgo === 1 ? "Yesterday" : `${daysAgo} days ago`;
@@ -215,6 +214,85 @@ block content %}
         window.location.href = `/auctions/${auctionId}/edit`;
       });
     });
+    const profile_edit_btn = document.getElementById("edit-profile-btn");
+    const profile_name = document.getElementById("profile-name");
+    const profile_email = document.getElementById("profile-email");
+    const profile_location = document.getElementById("profile-location");
+
+    const handleEditProfileClick = () => {
+      // Change the profile info fields to editable inputs
+      const currentName = profile_name.querySelector(".profile-info-value").textContent.trim().split(/\s+/);
+      const currentFirstName = currentName.shift() || "";
+      const currentLastName = currentName.join(" ");
+      profile_name.innerHTML = `
+        <p class="profile-info-label">First name</p>
+        <input type="text" id="edit-first-name" class="profile-info-value" value="${currentFirstName}">
+        <p class="profile-info-label">Last name</p>
+        <input type="text" id="edit-last-name" class="profile-info-value" value="${currentLastName}">
+      `;
+      profile_email.innerHTML = `
+        <p class="profile-info-label">Email</p>
+        <input type="email" id="edit-email" class="profile-info-value" value="${profile_email.querySelector(".profile-info-value").textContent.trim()}">
+      `;
+      profile_location.innerHTML = `
+        <p class="profile-info-label">Location</p>
+        <input type="text" id="edit-location" class="profile-info-value" value="${profile_location.querySelector(".profile-info-value").textContent.trim()}">
+      `;
+      // Change the edit button to a save button
+      profile_edit_btn.textContent = "Save";
+      profile_edit_btn.removeEventListener("click", handleEditProfileClick);
+      profile_edit_btn.addEventListener("click", handleSaveProfileClick);
+    };
+
+    const handleSaveProfileClick = async () => {
+        const updatedFirstName = document.getElementById("edit-first-name").value;
+        const updatedLastName = document.getElementById("edit-last-name").value;
+        const updatedName = [updatedFirstName, updatedLastName].filter(Boolean).join(" ");
+        const updatedEmail = document.getElementById("edit-email").value;
+        const updatedLocation = document.getElementById("edit-location").value;
+
+        try {
+          const response = await fetch("/api/users", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              first_name: updatedFirstName,
+              last_name: updatedLastName,
+              email: updatedEmail,
+              city: updatedLocation,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to update profile");
+          }
+
+          // Update the profile info fields with the new values
+          profile_name.innerHTML = `
+            <p class="profile-info-label">Full name</p>
+            <p class="profile-info-value">${updatedName}</p>
+          `;
+          profile_email.innerHTML = `
+            <p class="profile-info-label">Email</p>
+            <p class="profile-info-value">${updatedEmail}</p>
+          `;
+          profile_location.innerHTML = `
+            <p class="profile-info-label">Location</p>
+            <p class="profile-info-value">${updatedLocation}</p>
+          `;
+          // Change the save button back to an edit button
+          profile_edit_btn.textContent = "Edit profile";
+          profile_edit_btn.removeEventListener("click", handleSaveProfileClick);
+          profile_edit_btn.addEventListener("click", handleEditProfileClick);
+        } catch (error) {
+          console.error("Error updating profile:", error);
+          alert("An error occurred while updating your profile. Please try again.");
+        }
+    };
+
+    profile_edit_btn.addEventListener("click", handleEditProfileClick);
   });
 </script>
 {% endblock %}
