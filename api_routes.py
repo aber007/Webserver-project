@@ -182,39 +182,6 @@ def api_place_bid(auction_id):
 @api_bp.route('/auctions/remove_published', methods=['PUT'])
 @token_required
 def remove_published_auctions():
-    """
-    Mark an expired auction as no longer published
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          properties:
-            auction_id:
-              type: integer
-              description: The auction ID to update
-          required:
-            - auction_id
-    responses:
-      200:
-        description: Auction status updated successfully
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-      400:
-        description: Invalid request format, auction not found, auction is unpublished, or auction is still active
-      401:
-        description: Authentication token missing or invalid
-      404:
-        description: Auction not found
-    """
     # Implement the logic to remove published auctions
     data = request.get_json(silent=True)
     if not check_valid_json(data, ['auction_id']):
@@ -266,75 +233,6 @@ def check_auction_form_types(data):
 @api_bp.route('/auctions', methods=['POST'])
 @token_required
 def api_create_auction():
-    """
-    Create a new auction
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    consumes:
-      - multipart/form-data
-    parameters:
-      - name: name
-        in: formData
-        type: string
-        required: true
-        description: Auction title
-      - name: description
-        in: formData
-        type: string
-        required: true
-        description: Detailed auction description
-      - name: category
-        in: formData
-        type: integer
-        required: true
-        description: Category ID
-      - name: price
-        in: formData
-        type: number
-        required: true
-        description: Starting price for the auction
-      - name: auction_time
-        in: formData
-        type: integer
-        required: true
-        description: Auction duration in seconds
-      - name: location
-        in: formData
-        type: string
-        required: true
-        description: Item location
-      - name: condition
-        in: formData
-        type: string
-        required: true
-        description: Item condition (e.g., 'new', 'used', 'like new')
-      - name: published
-        in: formData
-        type: boolean
-        required: true
-        description: Whether to publish the auction immediately
-      - name: image_large
-        in: formData
-        type: file
-        required: true
-        description: Large auction image (JPG, JPEG, PNG, or WEBP)
-    responses:
-      200:
-        description: Auction created successfully
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-            name:
-              type: string
-      400:
-        description: Invalid request format, missing required fields, invalid image format, or no image provided
-      401:
-        description: Authentication token missing or invalid
-    """
     # Accept multipart/form-data (used by the create_auction.html form).
     is_multipart = request.content_type and 'multipart/form-data' in request.content_type
 
@@ -406,35 +304,6 @@ def api_create_auction():
 @api_bp.route('/auctions/<int:auction_id>', methods=['DELETE'])
 @token_required
 def api_delete_auction(auction_id):
-    """
-    Delete an auction
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    parameters:
-      - name: auction_id
-        in: path
-        type: integer
-        required: true
-        description: The auction ID to delete
-    responses:
-      200:
-        description: Auction deleted successfully
-        schema:
-          type: object
-          properties:
-            message: 
-              type: string
-      400:
-        description: Invalid auction ID or other errors
-      401:
-        description: Authentication token missing or invalid
-      403:
-        description: Unauthorized to delete this auction
-      404:
-        description: Auction not found
-    """
     # Implement the logic to delete an auction
     auction = auctions.get_auction_by_id(auction_id, increment_views=False, update_request=True)
     if not auction:
@@ -454,67 +323,6 @@ def api_delete_auction(auction_id):
 @api_bp.route('/auctions/<int:auction_id>', methods=['PUT'])
 @token_required
 def api_update_auction(auction_id):
-    """
-    Update an existing auction
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    consumes:
-      - multipart/form-data
-    parameters:
-      - name: auction_id
-        in: path
-        type: integer
-        required: true
-        description: The auction ID to update
-      - name: name
-        in: formData
-        type: string
-        description: (Optional) Auction title
-      - name: description
-        in: formData
-        type: string
-        description: (Optional) Detailed auction description
-      - name: category
-        in: formData
-        type: integer
-        description: (Optional) Category ID
-      - name: location
-        in: formData
-        type: string
-        description: (Optional) Item location
-      - name: condition
-        in: formData
-        type: string
-        description: (Optional) Item condition
-      - name: published
-        in: formData
-        type: boolean
-        description: (Optional) Whether auction is published
-      - name: image_large
-        in: formData
-        type: file
-        description: (Optional) Updated auction image (JPG, JPEG, PNG, or WEBP)
-    responses:
-      200:
-        description: Auction updated successfully
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-            name:
-              type: string
-      400:
-        description: Invalid field types, invalid image format, or no fields provided to update
-      401:
-        description: Authentication token missing or invalid
-      403:
-        description: Unauthorized to update this auction
-      404:
-        description: Auction not found
-    """
     # Implement the logic to update an auction
     auction = auctions.get_auction_by_id(auction_id, increment_views=False, update_request=True)
     if not auction:
@@ -588,25 +396,6 @@ def api_update_auction(auction_id):
 
 @api_bp.route('/users/<int:user_id>/recent', methods=['GET'])
 def api_get_recent_user_actions(user_id):
-    """
-    Get recent actions for a specific user
-    ---
-    parameters:
-      - name: user_id
-        in: path
-        type: integer
-        required: true
-        description: The user ID to retrieve recent actions for
-    responses:
-      200:
-        description: A list of recent actions for the user
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/Auction'
-      404:
-        description: User not found or no recent actions for the user
-    """
     recent_auctions = auctions.get_recent_user_actions(user_id)
     if recent_auctions is None:
         return jsonify({"error": "User not found or no recent actions for the user"}), 404
@@ -614,51 +403,6 @@ def api_get_recent_user_actions(user_id):
 
 @api_bp.route('/users', methods=['POST'])
 def api_create_user():
-    """
-    Create a new user account
-    ---
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          properties:
-            first_name:
-              type: string
-            last_name:
-              type: string
-            email:
-              type: string
-              format: email
-            password:
-              type: string
-            city:
-              type: string
-          required:
-            - first_name
-            - last_name
-            - email
-            - password
-    responses:
-      201:
-        description: User created successfully
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-            first_name:
-              type: string
-            last_name:
-              type: string
-            city:
-              type: string
-            account_created:
-              type: string
-      400:
-        description: Invalid format, missing required fields, or invalid email format
-    """
     # Implement the logic to create a new user
     data = request.get_json(silent=True)
     first_name = data.get('first_name') if data else None
@@ -690,55 +434,6 @@ def api_create_user():
 @api_bp.route('/users', methods=['PUT'])
 @token_required
 def api_update_user():
-    """
-    Update user details (requires authentication)
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          properties:
-            first_name:
-              type: string
-              description: (Optional) First name
-            last_name:
-              type: string
-              description: (Optional) Last name
-            email:
-              type: string
-              format: email
-              description: (Optional) Email address
-            city:
-              type: string
-              description: (Optional) City
-    responses:
-      200:
-        description: User updated successfully
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-            first_name:
-              type: string
-            last_name:
-              type: string
-            email:
-              type: string
-            city:
-              type: string
-            account_created:
-              type: string
-      400:
-        description: Invalid format, invalid email format, or no valid fields to update
-      401:
-        description: Authentication token missing or invalid
-    """
     # Implement the logic to update user details
     data = request.get_json(silent=True)
     if not data:
@@ -779,35 +474,6 @@ def api_update_user():
 @api_bp.route('/users', methods=['GET'])
 @token_required
 def api_get_all_users():
-    """
-    Get all users (requires authentication)
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    responses:
-      200:
-        description: List of all users
-        schema:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: integer
-              first_name:
-                type: string
-              last_name:
-                type: string
-              email:
-                type: string
-              city:
-                type: string
-              account_created:
-                type: string
-      401:
-        description: Authentication token missing or invalid
-    """
     # Implement the logic to get all users
     resp = users.get_all_users()
     return (jsonify(resp), 200)
@@ -815,39 +481,6 @@ def api_get_all_users():
 @api_bp.route('/users/<int:user_id>', methods=['GET'])
 @token_required
 def api_get_user(user_id):
-    """
-    Get user details by ID
-    ---
-    security:
-      - Bearer: []
-      - Cookie: []
-    parameters:
-      - name: user_id
-        in: path
-        type: integer
-        required: true
-        description: The user ID
-    responses:
-      200:
-        description: User details
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-            first_name:
-              type: string
-            last_name:
-              type: string
-            city:
-              type: string
-            account_created:
-              type: string
-      401:
-        description: Authentication token missing or invalid
-      404:
-        description: User not found
-    """
     # Implement the logic to get user details
     resp = users.get_user_by_id(user_id)
     if resp:
