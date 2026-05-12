@@ -30,11 +30,9 @@
               aria-expanded="false"
               aria-label="Open profile menu"
             >
-              <img
-                class="pfp"
-                src="{{ url_for('static', filename='pfp.jpg') }}"
-                alt="Profile"
-              />
+              <div class="pfp-avatar">
+                {{ user.first_name[0] if user and user.first_name else "T" }}
+              </div>
             </button>
             <div class="profile-menu-panel" role="menu">
               <a role="menuitem" href="/profile">Show profile</a>

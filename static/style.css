@@ -634,6 +634,20 @@ body {
   object-fit: cover;
 }
 
+.pfp-avatar {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), #2c5f2d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
 .profile-menu {
   position: relative;
 }

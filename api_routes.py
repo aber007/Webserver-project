@@ -153,6 +153,9 @@ def api_place_bid(auction_id):
     if not auction:
         return jsonify({"error": "Auction not found"}), 404
 
+    if auction['owner_id'] == g.user_id:
+        return jsonify({"error": "Cannot place bid on your own auction"}), 400
+    
     if not auction['published']:
         return jsonify({"error": "Auction is no longer published"}), 400
 
@@ -442,6 +445,7 @@ def api_delete_auction(auction_id):
         return jsonify({"error": "Unauthorized to delete this auction"}), 403
 
     success = auctions.delete_auction(auction_id)
+    print(f"Attempted to delete auction {auction_id}, success: {success}")
     if success:
         return jsonify({"message": "Auction deleted successfully"}), 200
     else:

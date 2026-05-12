@@ -331,6 +331,7 @@
 <script>
   const submit_public = document.getElementById("submit_public");
   const submit_private = document.getElementById("submit_private");
+  const deleteButton = document.getElementById("delete_auction");
   const getErrorMessage = async (response) => {
     let errorDetails = "";
     try {
@@ -391,5 +392,21 @@
       }
     });
   }
+  deleteButton.addEventListener("click", async (event) => {
+    event.preventDefault();
+    if (confirm("Are you sure you want to delete this auction? This action cannot be undone.")) {
+      const url = "/api/auctions/{{ auction.id }}";
+      const response = await fetch(url, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        window.location.href = "/profile";
+      } else {
+        const errorMessage = await getErrorMessage(response);
+        console.error(errorMessage);
+        alert(errorMessage);
+      }
+    }
+  });
 </script>
 {% endblock %}

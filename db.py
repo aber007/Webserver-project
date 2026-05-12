@@ -217,7 +217,7 @@ class Auctions:
             params.append(owner_id)
 
         query = (
-            "SELECT a.id, a.name, a.price, a.image_small, a.published_at, a.auction_time, a.views, "
+            "SELECT a.*, "
             "c.name AS category_name, COUNT(b.id) AS bid_count "
             "FROM auctions a "
             "INNER JOIN categories c ON a.category_id = c.id "
@@ -243,7 +243,7 @@ class Auctions:
             where_clause += " AND a.owner_id = %s"
             params.append(owner_id)
         query = (
-            "SELECT a.id, a.name, a.price, a.image_small, a.published_at, a.auction_time, a.views, "
+            "SELECT a.*, "
             "c.name AS category_name, COUNT(b.id) AS bid_count "
             "FROM auctions a "
             "INNER JOIN categories c ON a.category_id = c.id "
@@ -260,7 +260,7 @@ class Auctions:
         """
         Deletes an auction from the database by auction ID.
         """
-        run_sql("DELETE FROM auctions WHERE id = %s", (auction_id,), commit=True, fetch_all=False)
+        return run_sql("DELETE FROM auctions WHERE id = %s", (auction_id,), commit=True, fetch_all=False)
     @staticmethod
     def get_auction_by_id(auction_id, increment_views=True, update_request=False):
         """
@@ -449,6 +449,7 @@ class Auctions:
             "JOIN categories ON auctions.category_id = categories.id "
             "GROUP BY categories.id, categories.name "
             "ORDER BY views DESC "
+            "LIMIT 3"
         )
         rows = run_sql(query)
         return rows or []

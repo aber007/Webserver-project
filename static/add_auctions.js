@@ -110,6 +110,7 @@ const add_auctions = async (
         ? auction.bids
         : 0;
     const tags = [];
+    console.log("Auction data:", auction);
     if (auction.category_name) {
       tags.push(auction.category_name);
     }
