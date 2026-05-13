@@ -1,3 +1,4 @@
 getPlaceholders.py
 .env
 *.pyc
+*.json
