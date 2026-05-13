@@ -52,6 +52,27 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def get_optional_user_id():
+    """Try to get user_id from token without requiring authentication"""
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+    elif request.cookies.get('jwt_token'):
+        token = request.cookies.get('jwt_token')
+    else:
+        data = request.get_json(silent=True) or {}
+        token = data.get('authentication')
+    
+    if not token:
+        return None
+    
+    try:
+        from flask import current_app
+        data = jwt.decode(token, current_app.secret_key, algorithms=["HS256"])
+        return data.get('user_id')
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+
 def check_email_format(email):
     import re
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -104,6 +125,9 @@ def api_search():
     sort = request.args.get('sort', "published_at", type=str)
     owner_id = request.args.get('owner_id', None, type=int)
     count_temp = None
+    
+    # Get current user if authenticated
+    current_user_id = get_optional_user_id()
 
     if query:
         count_temp = count
@@ -112,9 +136,9 @@ def api_search():
         offset = 0
 
     if category:
-      auctions_items = auctions.get_auctions_by_category(category, count, offset, sort, owner_id=owner_id)
+      auctions_items = auctions.get_auctions_by_category(category, count, offset, sort, owner_id=owner_id, current_user_id=current_user_id)
     else:
-      auctions_items = auctions.get_all_auctions(count, offset, sort, owner_id=owner_id)
+      auctions_items = auctions.get_all_auctions(count, offset, sort, owner_id=owner_id, current_user_id=current_user_id)
 
     if query:
       # This is shit but it looks alright
@@ -126,7 +150,8 @@ def api_search():
 
 @api_bp.route('/auctions/<int:auction_id>', methods=['GET'])
 def api_auction_detail(auction_id):
-    auction = auctions.get_auction_by_id(auction_id)
+    user_id = get_optional_user_id()
+    auction = auctions.get_auction_by_id(auction_id, user_id=user_id)
     if not auction:
         return jsonify({"error": "Auction not found"}), 404
     return jsonify(auction)

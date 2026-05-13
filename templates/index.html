@@ -129,8 +129,10 @@
       return;
     }
 
-    const categories = await resp.json();
-    console.log("Fetched categories:", categories);
+    let categories = await resp.json();
+    
+    // Get top 3 categories based on views
+    categories = categories.sort((a, b) => b.views - a.views).slice(0, 3);
     categories.forEach((category) => {
       const tag = document.createElement("span");
       tag.className = "tag";

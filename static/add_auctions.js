@@ -85,22 +85,27 @@ const add_auctions = async (
   auctions_offset += auctions.length;
 
   for (const auction of auctions) {
-    // Check if auction is expired
-    const isExpired =
-      remainingSeconds(auction.published_at, auction.auction_time) <= 0;
-    if (isExpired) {
-      try {
-        await fetch(`${window.location.origin}/api/auctions/remove_published`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ auction_id: auction.id }),
-        });
-      } catch (error) {
-        console.error("Error updating auction status:", error);
+    // Check if auction is expired (only for published auctions)
+    if (auction.published) {
+      const isExpired =
+        remainingSeconds(auction.published_at, auction.auction_time) <= 0;
+      if (isExpired) {
+        try {
+          await fetch(
+            `${window.location.origin}/api/auctions/remove_published`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ auction_id: auction.id }),
+            },
+          );
+        } catch (error) {
+          console.error("Error updating auction status:", error);
+        }
+        continue; // Skip rendering this auction
       }
-      continue; // Skip rendering this auction
     }
 
     const auctionCard = document.createElement("div");
@@ -128,6 +133,24 @@ const add_auctions = async (
     const endsIn = formatTime(
       remainingSeconds(auction.published_at, auction.auction_time),
     );
+    // const endedBadge =
+    //   !auction.published &&
+    //   remainingSeconds(auction.published_at, auction.auction_time) <= 0
+    //     ? '<span class="auction-preview-ended-badge">Ended</span>'
+    //     : "";
+    // if (endedBadge == "") {
+    //   const unpublishedBadge = !auction.published
+    //     ? '<span class="auction-preview-unpublished-badge">Unpublished</span>'
+    //     : "";
+    let badge = "";
+    if (!auction.published) {
+      if (remainingSeconds(auction.published_at, auction.auction_time) <= 0) {
+        badge = '<span class="auction-preview-ended-badge">Ended</span>';
+      }
+      else {
+        badge = '<span class="auction-preview-unpublished-badge">Unpublished</span>';
+      }
+    }
     auctionCard.className = "auction-preview-card auction-preview-card--small";
     auctionCard.setAttribute("data-auction-id", auction.id);
     auctionCard.addEventListener("click", () => {
@@ -135,6 +158,7 @@ const add_auctions = async (
     });
     auctionCard.innerHTML = `
                     <div class="auction-preview-image" style="background-image: url('${auction.image_small}')"></div>
+                    ${badge}
                     <div class="auction-preview-body">
                         <div class="auction-preview-price">SEK ${auction.price}</div>
                         <h3 class="auction-preview-title">${auction.name}</h3>

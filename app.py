@@ -124,10 +124,11 @@ def create_auction():
 @app.route('/auctions/<int:auction_id>/edit')
 @login_required
 def edit_auction(auction_id):
-    auction_info = auctions.get_auction_by_id(auction_id, increment_views=False)
+    user_id = session.get('user_id')
+    auction_info = auctions.get_auction_by_id(auction_id, increment_views=False, user_id=user_id)
     if not auction_info:
         return "Auction not found", 404
-    if auction_info['owner_id'] != session.get('user_id'):
+    if auction_info['owner_id'] != user_id:
         return "Unauthorized", 403
     return render_template('edit_auction.html', auction=auction_info, user=session.get('current_user'))
 

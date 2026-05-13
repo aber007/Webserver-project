@@ -8,6 +8,37 @@
       <span>Auction {{ auction_id }}</span>
     </div>
 
+    <!-- Notice for unpublished auctions -->
+    <div
+      id="unpublished-notice"
+      style="
+        display: none;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 4px;
+        color: #856404;
+      "
+    >
+      <strong>⚠️ This auction has not been published yet.</strong> Only you can
+      see this preview.
+    </div>
+    <div
+      id="ended-notice"
+      style="
+        display: none;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 4px;
+        color: #856404;
+      "
+    >
+      <strong>⚠️ This auction has ended.</strong> Only you can see this preview.
+    </div>
+
     <div class="auction-detail-content">
       <div class="auction-image-large"></div>
 
@@ -110,7 +141,31 @@
         "seller_member_since",
       );
       const bidInputElem = document.getElementById("bid-input");
+      const bidSectionElem = document.querySelector(".bid-section");
+      const unpublishedNoticeElem =
+        document.getElementById("unpublished-notice");
+      const endedNoticeElem = document.getElementById("ended-notice");
       const imgElem = document.querySelector(".auction-image-large");
+
+      // Define helper functions first
+      const remainingSeconds = (publishedAt, durationSeconds) => {
+        const startMs = Date.parse(publishedAt);
+        if (Number.isNaN(startMs) || !Number.isFinite(durationSeconds))
+          return 0;
+        const endMs = startMs + Math.max(0, durationSeconds) * 1000;
+        return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+      };
+      const formatTime = (seconds) => {
+        if (!Number.isFinite(seconds)) return "";
+        const clamped = Math.max(0, Math.floor(seconds));
+        const days = Math.floor(clamped / 86400);
+        const hours = Math.floor((clamped % 86400) / 3600);
+        const minutes = Math.floor((clamped % 3600) / 60);
+        const secs = clamped % 60;
+        if (days > 0) return `${days}d ${hours}h`;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        return `${minutes}m ${secs}s`;
+      };
 
       try {
         const response = await fetch(
@@ -121,6 +176,28 @@
         }
 
         const auction = await response.json();
+
+        // Show unpublished notice if auction is not published
+        if (!auction.published) {
+          if (
+            remainingSeconds(auction.published_at, auction.auction_time) == 0
+          ) {
+            endedNoticeElem.style.display = "block";
+            // Display winner if auction has ended
+            resp = await fetch(
+              `${window.location.origin}/api/users/${auction.leader_id}`,
+            );
+            if (resp.ok) {
+              const leader = await resp.json();
+
+              bidSectionElem.innerHTML = `<p style="color: #a07bff;"><strong>Winner: ${leader.first_name} ${leader.last_name}</strong></p>`;
+            }
+          } else {
+            unpublishedNoticeElem.style.display = "block";
+            bidSectionElem.innerHTML =
+              '<p style="color: #856404;"><strong>Bidding is disabled for unpublished auctions.</strong></p>';
+          }
+        }
 
         const seller_response = await await fetch(
           `${window.location.origin}/api/users/${auction.owner_id}`,
@@ -141,24 +218,6 @@
 
         bidInputElem.min = auction.price + 1;
 
-        const remainingSeconds = (publishedAt, durationSeconds) => {
-          const startMs = Date.parse(publishedAt);
-          if (Number.isNaN(startMs) || !Number.isFinite(durationSeconds))
-            return 0;
-          const endMs = startMs + Math.max(0, durationSeconds) * 1000;
-          return Math.max(0, Math.floor((endMs - Date.now()) / 1000));
-        };
-        const formatTime = (seconds) => {
-          if (!Number.isFinite(seconds)) return "";
-          const clamped = Math.max(0, Math.floor(seconds));
-          const days = Math.floor(clamped / 86400);
-          const hours = Math.floor((clamped % 86400) / 3600);
-          const minutes = Math.floor((clamped % 3600) / 60);
-          const secs = clamped % 60;
-          if (days > 0) return `${days}d ${hours}h`;
-          if (hours > 0) return `${hours}h ${minutes}m`;
-          return `${minutes}m ${secs}s`;
-        };
         const remaining = remainingSeconds(
           auction.published_at,
           auction.auction_time,

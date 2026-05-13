@@ -201,7 +201,7 @@ def get_category_id(category):
 
 class Auctions:
     @staticmethod
-    def get_auctions_by_category(category, count, offset, sort, owner_id=None):
+    def get_auctions_by_category(category, count, offset, sort, owner_id=None, current_user_id=None):
         """
         Fetches the auctions from a specific category
         """
@@ -209,12 +209,19 @@ class Auctions:
         allowed_sorts = {"published_at", "views", "price"}
         sort_column = sort if sort in allowed_sorts else "published_at"
 
-        where_clause = "WHERE a.category_id = %s AND a.published = TRUE"
+        where_clause = "WHERE a.category_id = %s"
         params = [category_id]
-
+        
+        # If filtering by owner_id, allow unpublished if current user is the owner
         if owner_id is not None:
             where_clause += " AND a.owner_id = %s"
             params.append(owner_id)
+            # If current user is NOT the owner, only show published auctions
+            if current_user_id is None or current_user_id != owner_id:
+                where_clause += " AND a.published = TRUE"
+        else:
+            # No owner filter, only show published
+            where_clause += " AND a.published = TRUE"
 
         query = (
             "SELECT a.*, "
@@ -231,17 +238,26 @@ class Auctions:
         rows = run_sql(query, tuple(params))
         return rows or []
     @staticmethod
-    def get_all_auctions(count, offset, sort, owner_id=None):
+    def get_all_auctions(count, offset, sort, owner_id=None, current_user_id=None):
         """
         Fetches all auctions from the database
         """
         allowed_sorts = {"published_at", "views", "price"}
         sort_column = sort if sort in allowed_sorts else "published_at"
-        where_clause = "WHERE a.published = TRUE"
+        where_clause = "WHERE 1=1"
         params = []
+        
+        # If filtering by owner_id, allow unpublished if current user is the owner
         if owner_id is not None:
             where_clause += " AND a.owner_id = %s"
             params.append(owner_id)
+            # If current user is NOT the owner, only show published auctions
+            if current_user_id is None or current_user_id != owner_id:
+                where_clause += " AND a.published = TRUE"
+        else:
+            # No owner filter, only show published
+            where_clause += " AND a.published = TRUE"
+            
         query = (
             "SELECT a.*, "
             "c.name AS category_name, COUNT(b.id) AS bid_count "
@@ -262,14 +278,26 @@ class Auctions:
         """
         return run_sql("DELETE FROM auctions WHERE id = %s", (auction_id,), commit=True, fetch_all=False)
     @staticmethod
-    def get_auction_by_id(auction_id, increment_views=True, update_request=False):
+    def get_auction_by_id(auction_id, increment_views=True, update_request=False, user_id=None):
         """
-        Fetches a specific auction by its ID
+        Fetches a specific auction by its ID.
+        If user_id is provided and matches the owner_id, unpublished auctions are also returned.
         """
         if increment_views:
             run_sql("UPDATE auctions SET views = views + 1 WHERE id = %s", (auction_id,), commit=True, fetch_all=False)
+        
+        # Build the published filter
+        if update_request:
+            published_filter = ""
+        elif user_id:
+            # Allow viewing if published OR if user is the owner
+            published_filter = f"AND (a.published = TRUE OR a.owner_id = {user_id})"
+        else:
+            # Only show published auctions if no user_id provided
+            published_filter = "AND a.published = TRUE"
+        
         return run_sql(
-            f"SELECT a.*, c.name AS category_name, COUNT(b.id) AS bid_count FROM auctions a INNER JOIN categories c ON a.category_id = c.id LEFT JOIN bids b ON b.auction_id = a.id WHERE a.id = %s {('AND a.published = TRUE') if not update_request else ''} GROUP BY a.id, a.name, c.name;",
+            f"SELECT a.*, c.name AS category_name, COUNT(b.id) AS bid_count FROM auctions a INNER JOIN categories c ON a.category_id = c.id LEFT JOIN bids b ON b.auction_id = a.id WHERE a.id = %s {published_filter} GROUP BY a.id, a.name, c.name;",
             (auction_id,),
             fetch_one=True,
             fetch_all=False,
@@ -444,12 +472,11 @@ class Auctions:
         Fetches the most popular categories based on the number of auctions.
         """
         query = (
-            "SELECT categories.name AS category, SUM(auctions.views) AS views "
+            "SELECT categories.name AS category, SUM(auctions.views) AS views, categories.id AS category_id "
             "FROM auctions "
             "JOIN categories ON auctions.category_id = categories.id "
             "GROUP BY categories.id, categories.name "
             "ORDER BY views DESC "
-            "LIMIT 3"
         )
         rows = run_sql(query)
         return rows or []
